@@ -17,6 +17,7 @@ const Navbar = () => {
     sessionStorage.removeItem("token");
     setToken(null);
     navigate("/login"); // Redirige sin recargar
+    // hola esto es una purba para git
   };
 
   return (
