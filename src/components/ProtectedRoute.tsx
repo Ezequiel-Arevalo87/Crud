@@ -5,7 +5,7 @@ const ProtectedRoute = () => {
   const token = sessionStorage.getItem("token");
   const rol:any = getUserRole()
 
-  return token && rol.role !=='Clinte' ? <Outlet /> : <Navigate to="/" replace />;
+  return token && rol.role !=='Cliente' ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;

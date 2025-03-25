@@ -1,62 +1,82 @@
-import { Container, Typography, Box, Card, CardContent, CardMedia, Grid } from "@mui/material";
-import { Swiper, SwiperSlide } from "swiper/react";
-
-import { Autoplay } from "swiper/modules"; // Importa módulos adicionales
+import { Container, Typography, Box, Card, CardContent, CardMedia, Grid, Button } from "@mui/material";
+import NuestrosClientes from "./NuestrosClientes";
+import { useEffect, useState } from "react";
+import apiService from "../services/api";
+import { useLocation } from "react-router-dom";
 
 const Home = () => {
-  const barbershops = [
-    { name: "Barbería Elite", image: "https://source.unsplash.com/600x400/?barber" },
-    { name: "Barber Masters", image: "https://source.unsplash.com/600x400/?barbershop" },
-    { name: "Corte Clásico", image: "https://source.unsplash.com/600x400/?haircut" },
-  ];
+  
+  const [token , setToken] = useState( sessionStorage.getItem("token"))
+  const [barbershops, setBarbershops] = useState([]);
+  const location = useLocation();
+  const mensaje = location.state?.mensaje || "No hay mensaje";
 
-  const reviews = [
-    { name: "Carlos R.", comment: "Excelente servicio y ambiente. ¡Volveré pronto!" },
-    { name: "Ana P.", comment: "El mejor corte que he tenido, profesionales de verdad." },
-    { name: "Javier M.", comment: "Muy recomendable, atención de primera y buen precio." },
-  ];
+  useEffect(() => {
+    obtenerAllBarberias();
+  }, []);
+  useEffect(() => {
+
+    debugger
+    if(mensaje == 'OK'){
+      setToken(null)
+    }
+    
+  }, [mensaje == 'OK']);
+
+  console.log('ver token', token)
+
+  const obtenerAllBarberias = async () => {
+    try {
+      const data = await apiService.getUsuarios();
+      setBarbershops(data);
+    } catch (error) {
+      console.error("Error al cargar barberías", error);
+    }
+  };
 
   return (
     <Container>
-      <Typography variant="h3" align="center" gutterBottom>
-        Bienvenido a las mejores barberías
-      </Typography>
+      <Box my={5}>
+        <Typography variant="h3" align="center" gutterBottom>
+          Bienvenido a las mejores barberías
+        </Typography>
+      </Box>
 
       {/* Galería de Barberías */}
-      <Grid container spacing={3}>
-        {barbershops.map((barber, index) => (
+      <Grid container spacing={3} justifyContent="center">
+        {barbershops.map((barber: any, index: any) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card>
-              <CardMedia component="img" height="200" image={barber.image} alt={barber.name} />
-              <CardContent>
-                <Typography variant="h6" align="center">{barber.name}</Typography>
+            <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
+              <CardMedia
+                component="img"
+                height="200"
+                image={barber?.image || "/default-barber.jpg"}
+                alt={barber?.nombre}
+                sx={{ objectFit: "cover" }}
+              />
+              <CardContent sx={{ textAlign: "center", padding: 2 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  {barber.nombre}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {barber.descripcion}
+                </Typography>
+                <Typography variant="h6" color="text.secondary">
+                  {barber.direccion}
+                </Typography>
+                {
+                  token && 
+
+                  <Button>Ir a la sala</Button>
+                }
+               
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      {/* Testimonios */}
-      <Box mt={5}>
-        <Typography variant="h4" align="center" gutterBottom>
-          Lo que dicen nuestros clientes
-        </Typography>
-        <Swiper
-          spaceBetween={50}
-          slidesPerView={1}
-          autoplay={{ delay: 3000, disableOnInteraction: false }}
-          modules={[Autoplay]} // Aquí agregamos los módulos
-        >
-          {reviews.map((review, index) => (
-            <SwiperSlide key={index}>
-              <Box p={3} textAlign="center" bgcolor="#f5f5f5" borderRadius={2}>
-                <Typography variant="h6">{review.name}</Typography>
-                <Typography variant="body1">"{review.comment}"</Typography>
-              </Box>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </Box>
+      <NuestrosClientes reviews = {barbershops} />
     </Container>
   );
 };

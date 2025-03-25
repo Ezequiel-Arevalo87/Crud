@@ -26,6 +26,18 @@ const SwalAlert = {
       cancelButtonText: "Cancelar",
     });
   },
+  confirCerrarSesion: async (title: string, text: string = "") => {
+    return await Swal.fire({
+      title,
+      text,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#1976d2",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+    });
+  },
 
   success: (title: string, text: string = "") => {
     Swal.fire({

@@ -6,21 +6,22 @@ import apiService from "../services/api";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 interface ActualizarUsuarioProps {
-  usuarios: any;
+  barberias: any;
   formularioActualizar: any;
   fetchUsuarios: any;
-  setactualizarDatosUsuarios: any;
+  setActualizarDatosBarberias: any;
 }
 
 
-const ActualizarUsuario: React.FC<ActualizarUsuarioProps> = ({ usuarios, formularioActualizar, fetchUsuarios, setactualizarDatosUsuarios }) => {
+const ActualizarUsuario: React.FC<ActualizarUsuarioProps> = ({ barberias, formularioActualizar, fetchUsuarios, setActualizarDatosBarberias }) => {
 
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     
-    formularioActualizar.setValue('nombre', usuarios[0].nombre)
-    formularioActualizar.setValue('correo', usuarios[0].correo)
+    formularioActualizar.setValue('nombre', barberias[0].nombre)
+    formularioActualizar.setValue('correo', barberias[0].correo)
+    formularioActualizar.setValue('descripcion', barberias[0].descripcion)
   }, [])
 
   const actualizarUsuaio = async (data: any) => {
@@ -28,9 +29,10 @@ const ActualizarUsuario: React.FC<ActualizarUsuarioProps> = ({ usuarios, formula
     const request = {
       nombre: data?.nombre,
       correo: data?.correo,
-      clave: data?.clave
+      clave: data?.clave,
+      descripcion: data?.descripcion
     }
-    const id = usuarios[0].id
+    const id = barberias[0].id
 
     if (result.isConfirmed) {
       try {
@@ -38,7 +40,7 @@ const ActualizarUsuario: React.FC<ActualizarUsuarioProps> = ({ usuarios, formula
 
         fetchUsuarios()
         SwalAlert.success("Usuario actualizado", "El usuario ha sido actualizado");
-        setactualizarDatosUsuarios('')
+        setActualizarDatosBarberias('')
       } catch (error) {
         console.error("Error al actualizar usuario", error);
         SwalAlert.error("Error", "Hubo un problema al actualizar el usuario");
@@ -48,7 +50,7 @@ const ActualizarUsuario: React.FC<ActualizarUsuarioProps> = ({ usuarios, formula
 
   const cancelar = () => {
     fetchUsuarios()
-    setactualizarDatosUsuarios('')
+    setActualizarDatosBarberias('')
   }
 
   return (
@@ -83,6 +85,26 @@ const ActualizarUsuario: React.FC<ActualizarUsuarioProps> = ({ usuarios, formula
         }}
         render={({ field, fieldState: { error } }) => (
           <TextField {...field} label="Correo" variant="outlined" fullWidth error={!!error} helperText={error?.message} />
+        )}
+      />
+      {/* Campo descripción */}
+      <Controller
+        name="descripcion"
+        control={formularioActualizar.control}
+        rules={{
+          required: "La descripción es obligatoria",
+        }}
+        render={({ field, fieldState: { error } }) => (
+          <TextField
+            {...field}
+            label="Descripción"
+            variant="outlined"
+            fullWidth
+            multiline
+            rows={4} // Ajusta según lo necesites
+            error={!!error}
+            helperText={error?.message}
+          />
         )}
       />
       <Controller

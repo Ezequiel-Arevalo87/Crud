@@ -2,6 +2,8 @@ import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getUserRole } from '../services/authService';
+import SwalAlert from "./alerts/SwalAlert";
+
 
 const Navbar = () => {
   const [token, setToken] = useState(sessionStorage.getItem("token"));
@@ -11,13 +13,19 @@ const Navbar = () => {
 
   useEffect(() => {
     setToken(sessionStorage.getItem("token"));
-  }, [location.pathname]);
+  }, [location.pathname, token]);
 
-  const handleLogout = () => {
+  const handleLogout = async() => {
+    
+    const result = await SwalAlert.confirCerrarSesion("¿Estás seguro?", "Cerrar sesion");
+    if(result.isConfirmed){
+      setToken(null);
     sessionStorage.removeItem("token");
-    setToken(null);
-    navigate("/login"); // Redirige sin recargar
-    // hola esto es una purba para git
+    
+    navigate("/", { state: { mensaje: "OK" } });
+    }
+
+    console.log('rol',rol)
   };
 
   return (
@@ -31,13 +39,13 @@ const Navbar = () => {
             Home
           </Button>
 
-          {(token && rol.role !== 'Clinte') && (
-            <Button color="inherit" component={Link} to="/usuarios">
-              Usuarios
+          {(token && rol.role !== 'Cliente') && (
+            <Button color="inherit" component={Link} to="/barberias">
+              Barberias
             </Button>
           )}
 
-          {token ? (
+          {rol ? (
             <Button color="inherit" onClick={handleLogout}>
               Logout
             </Button>

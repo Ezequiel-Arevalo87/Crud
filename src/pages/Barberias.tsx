@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import apiService from "../services/api";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Button, Typography, Container, Box, Stack,
@@ -9,13 +8,15 @@ import {
 } from "@mui/material";
 import SwalAlert from "../components/alerts/SwalAlert";
 import { useForm } from "react-hook-form";
+import ActualizarUsuario from "./ActualizarUsuario";
 import { getUserRole } from "../services/authService";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Add } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import apiBarberiaService from "../services/apiBarberiaService";
 
-const Usuarios = () => {
+const Barberias = () => {
 
     const formularioBarberia = useForm({
         defaultValues: {
@@ -30,9 +31,8 @@ const Usuarios = () => {
         }
     })
 
-    const [usuarios, setUsuarios] = useState([]);
-    const [actualizarDatosUsuarios, setactualizarDatosUsuarios] = useState('');
-    const [abrirFormBarbe, setAbrirFormBarbe] = useState(false);
+    const [barberias, setBarberias] = useState([]);
+    const [actualizarDatosBarberias, setActualizarDatosBarberias] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const rol: any = getUserRole();
@@ -45,33 +45,33 @@ const Usuarios = () => {
 
     const fetchUsuarios = async () => {
         try {
-            const data = await apiService.getUsuarios();
-            setUsuarios(data);
+            const data = await apiBarberiaService.getBarberias();
+            setBarberias(data);
         } catch (error) {
-            console.error("Error al cargar usuarios", error);
+            console.error("Error al cargar barberias", error);
         }
     };
 
-    const handleEliminarUsuario = async (id: string) => {
+    const handleEliminarBarberia = async (id: string) => {
         const result = await SwalAlert.confirmDelete("¿Estás seguro?", "Esta acción no se puede deshacer");
         if (result.isConfirmed) {
             try {
-                await apiService.deleteUsuario(id);
-                setUsuarios(usuarios.filter((user: any) => user.id !== id));
-                SwalAlert.success("Usuario eliminado", "El usuario ha sido eliminado correctamente");
+                await apiBarberiaService.deleteBarberia(id);
+                setBarberias(barberias.filter((user: any) => user.id !== id));
+                SwalAlert.success("Barberia eliminado", "La Barneria ha sido eliminado correctamente");
             } catch (error) {
-                console.error("Error al eliminar usuario", error);
-                SwalAlert.error("Error", "Hubo un problema al eliminar el usuario");
+                console.error("Error al eliminar barberia", error);
+                SwalAlert.error("Error", "Hubo un problema al eliminar la barberia");
             }
         }
     };
     const handActualizar = async (id: string) => {
-        setactualizarDatosUsuarios(id)
-        setUsuarios(usuarios.filter((user: any) => user.id === id));
+        setActualizarDatosBarberias(id)
+        setBarberias(barberias.filter((user: any) => user.id === id));
     };
 
     const abrirFormularioCrearBarberia = () => {
-        setAbrirFormBarbe(true)
+        navigate("/crear-barberia");
         formularioBarberia.reset()
     }
 
@@ -90,7 +90,7 @@ const Usuarios = () => {
     };
 
     return (
-        <> {!abrirFormBarbe ?
+        <>
             <Container maxWidth={false} sx={{ p: 3 }}>
                 <Typography variant="h2" sx={{ mb: 3, textAlign: "center" }}>
                     Lista de Barberias Admin
@@ -117,27 +117,21 @@ const Usuarios = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell sx={{ width: "4%", textAlign: "center", p: 1 }}>ID</TableCell>
-                                    <TableCell sx={{ width: "12%", p: 1 }}>Nombre Barbería</TableCell>
                                     <TableCell sx={{ width: "10%", p: 1 }}>Nombre</TableCell>
                                     <TableCell sx={{ width: "15%", p: 1 }}>Email</TableCell>
-                                    <TableCell sx={{ width: "18%", p: 1 }}>Descripción</TableCell>
                                     <TableCell sx={{ width: "10%", p: 1 }}>Dirección</TableCell>
                                     <TableCell sx={{ width: "8%", p: 1 }}>Teléfono</TableCell>
-                                    <TableCell sx={{ width: "8%", whiteSpace: "nowrap", p: 1 }}>Fecha de Ingreso</TableCell>
                                     <TableCell sx={{ width: "5%", textAlign: "center", p: 1 }}>Acciones</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {usuarios.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user: any) => (
+                                {barberias.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user: any) => (
                                     <TableRow key={user.id}>
                                         <TableCell sx={{ textAlign: "center", p: 1 }}>{user.id}</TableCell>
-                                        <TableCell sx={{ p: 1 }}>{user.nombreBarberia}</TableCell>
                                         <TableCell sx={{ p: 1 }}>{user.nombre}</TableCell>
-                                        <TableCell sx={{ p: 1 }}>{user.correo}</TableCell>
-                                        <TableCell sx={{ p: 1 }}>{user.descripcion}</TableCell>
+                                        <TableCell sx={{ p: 1 }}>{user.email}</TableCell>
                                         <TableCell sx={{ p: 1 }}>{user.direccion}</TableCell>
                                         <TableCell sx={{ p: 1 }}>{user.telefono}</TableCell>
-                                        <TableCell sx={{ whiteSpace: "nowrap", p: 1 }}>{user.fechaRegistro}</TableCell>
                                         <TableCell sx={{ textAlign: "center", p: 1 }}>
                                             <Stack direction="row" spacing={1} justifyContent="center">
                                                 <Tooltip title="Actualizar">
@@ -154,7 +148,7 @@ const Usuarios = () => {
                                                 )}
                                                 {rol?.role === "Admin" && (
                                                     <Tooltip title="Eliminar">
-                                                        <IconButton color="error" onClick={() => handleEliminarUsuario(user.id)}>
+                                                        <IconButton color="error" onClick={() => handleEliminarBarberia(user.id)}>
                                                             <DeleteIcon fontSize="small" />
                                                         </IconButton>
                                                     </Tooltip>
@@ -168,7 +162,7 @@ const Usuarios = () => {
                         <TablePagination
                             rowsPerPageOptions={[5, 10, 25]}
                             component="div"
-                            count={usuarios.length}
+                            count={barberias.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             onPageChange={handleChangePage}
@@ -176,15 +170,19 @@ const Usuarios = () => {
                         />
                     </TableContainer>
                 </Box>
-              
-            </Container> : null
-        }
-            {/* {abrirFormBarbe ?
-                <CrearBarberia
-                     /> : null
-            } */}
+                {
+                    actualizarDatosBarberias !== '' ?
+                        <ActualizarUsuario
+                            barberias={barberias}
+                            formularioActualizar={formularioBarberia}
+                            fetchUsuarios={fetchUsuarios}
+                            setActualizarDatosBarberias={setActualizarDatosBarberias}
+                        /> : null
+                }
+            </Container> 
+           
         </>
     );
 };
 
-export default Usuarios;
+export default Barberias;

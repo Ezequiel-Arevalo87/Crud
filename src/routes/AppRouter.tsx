@@ -2,9 +2,12 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Home from "../pages/Home";
-import Usuarios from "../pages/Usuarios";
+import Barberias from "../pages/Barberias";
 import Login from "../pages/Login";
 import ProtectedRoute from "../components/ProtectedRoute";
+import RegistrarBarbero from "../pages/RegistrarBarbero";
+import CrearBarberia from "../pages/CrearBarberia";
+
 
 const AppRouter = () => {
   return (
@@ -16,8 +19,11 @@ const AppRouter = () => {
 
         {/* Rutas protegidas */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/usuarios" element={<Usuarios />} />
+          <Route path="/barberias" element={<Barberias />} />
         </Route>
+        <Route path="/registrar-barbero" element={<RegistrarBarbero />} />
+        <Route path="/crear-barberia" element = {<CrearBarberia/>}/>
+
       </Routes>
     </Router>
   );
