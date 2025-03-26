@@ -41,6 +41,7 @@ const Usuarios = () => {
 
     useEffect(() => {
         fetchUsuarios();
+       console.log({actualizarDatosUsuarios}) 
     }, []);
 
     const fetchUsuarios = async () => {

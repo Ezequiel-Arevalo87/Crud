@@ -15,6 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Add } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import apiBarberiaService from "../services/apiBarberiaService";
+import LoadingScissors from "../components/loading/LoadingScissors";
 
 const Barberias = () => {
 
@@ -33,6 +34,7 @@ const Barberias = () => {
 
     const [barberias, setBarberias] = useState([]);
     const [actualizarDatosBarberias, setActualizarDatosBarberias] = useState('');
+    const [loading, setLoading] = useState(false)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const rol: any = getUserRole();
@@ -40,13 +42,15 @@ const Barberias = () => {
 
 
     useEffect(() => {
-        fetchUsuarios();
+        fetchBarberias();
     }, []);
 
-    const fetchUsuarios = async () => {
+    const fetchBarberias = async () => {
+        setLoading(true)
         try {
             const data = await apiBarberiaService.getBarberias();
             setBarberias(data);
+            setLoading(false )
         } catch (error) {
             console.error("Error al cargar barberias", error);
         }
@@ -89,8 +93,16 @@ const Barberias = () => {
         navigate("/registrar-barbero", { state: { id } });
     };
 
+    if (loading) {
+        return (
+          <div >
+            <LoadingScissors />
+          </div>
+        );
+      }
     return (
         <>
+      
             <Container maxWidth={false} sx={{ p: 3 }}>
                 <Typography variant="h2" sx={{ mb: 3, textAlign: "center" }}>
                     Lista de Barberias Admin
@@ -139,14 +151,14 @@ const Barberias = () => {
                                                         <EditIcon fontSize="small" />
                                                     </IconButton>
                                                 </Tooltip>
-                                                {rol?.role === "Admin" && (
+                                                {rol?.role === "Super_Admin" && (
                                                     <Tooltip title="Agregar Barbero">
                                                         <IconButton color="error" onClick={() => handleRegistrar(user.id) }>
                                                             <Add fontSize="small" />
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
-                                                {rol?.role === "Admin" && (
+                                                {rol?.role === "Super_Admin" && (
                                                     <Tooltip title="Eliminar">
                                                         <IconButton color="error" onClick={() => handleEliminarBarberia(user.id)}>
                                                             <DeleteIcon fontSize="small" />
@@ -175,7 +187,7 @@ const Barberias = () => {
                         <ActualizarUsuario
                             barberias={barberias}
                             formularioActualizar={formularioBarberia}
-                            fetchUsuarios={fetchUsuarios}
+                            fetchUsuarios={fetchBarberias}
                             setActualizarDatosBarberias={setActualizarDatosBarberias}
                         /> : null
                 }

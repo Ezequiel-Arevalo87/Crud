@@ -3,12 +3,14 @@ import NuestrosClientes from "./NuestrosClientes";
 import { useEffect, useState } from "react";
 import apiService from "../services/api";
 import { useLocation } from "react-router-dom";
+import LoadingScissors from "../components/loading/LoadingScissors";
 
 const Home = () => {
   
   const [token , setToken] = useState( sessionStorage.getItem("token"))
   const [barbershops, setBarbershops] = useState([]);
   const location = useLocation();
+  const [loading, setLoading] = useState(false)
   const mensaje = location.state?.mensaje || "No hay mensaje";
 
   useEffect(() => {
@@ -16,7 +18,7 @@ const Home = () => {
   }, []);
   useEffect(() => {
 
-    debugger
+ 
     if(mensaje == 'OK'){
       setToken(null)
     }
@@ -26,13 +28,21 @@ const Home = () => {
   console.log('ver token', token)
 
   const obtenerAllBarberias = async () => {
+    setLoading(true)
     try {
       const data = await apiService.getUsuarios();
       setBarbershops(data);
+      setLoading(false)
     } catch (error) {
       console.error("Error al cargar barberías", error);
+      setLoading(false)
     }
   };
+
+  if(loading){
+    return <LoadingScissors/>
+}
+
 
   return (
     <Container>

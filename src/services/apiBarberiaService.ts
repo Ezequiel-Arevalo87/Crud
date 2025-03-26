@@ -48,6 +48,8 @@ const apiBarberiaService = {
     }
   },
 
+ 
+
   // Crear usuario
   async postBarberia(data: any) {
     try {

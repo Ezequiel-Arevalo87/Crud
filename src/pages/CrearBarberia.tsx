@@ -28,11 +28,13 @@ const FormBarberia: React.FC = () => {
 
   const [tipoDocumentos, setTipoDocumentos] = useState([])
 
+
   useEffect(()=> {
     obtenerTiposDocumentos()
   },[])
 
   const obtenerTiposDocumentos = async () => {
+   
     try {
       const data =  await apiTipoDocumentos.getTiposDocumentos();
       
