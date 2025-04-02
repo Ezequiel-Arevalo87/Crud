@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken} from "./authService";
 
 const apiBarbero = axios.create({
-  baseURL: "https://localhost:7148/api", // Reemplaza con tu URL real
+  baseURL: "https://localhost:7238/api", // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },
@@ -57,19 +57,19 @@ const apiBarberoService = {
       console.error("Error al obtener barberos de la barbería", error);
       throw error;
     }
-  }
+  },
   
 
-  // Crear usuario
-//   async postBarberia(data: any) {
-//     try {
-//       const response = await apiBarberia.post("/barberias", data);
-//       return response.data;
-//     } catch (error) {
-//       console.error("Error al crear barberia", error);
-//       throw error;
-//     }
-//   },
+ // Crear barbero
+  async postBarbero(data: any) {
+    try {
+      const response = await apiBarbero.post("/barbero", data);
+      return response.data;
+    } catch (error) {
+      console.error("Error al crear barberia", error);
+      throw error;
+    }
+  },
 
   // Actualizar usuario
 //   async putBarberia(id: string, data: any) {

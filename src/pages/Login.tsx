@@ -23,6 +23,7 @@ const Login = () => {
       SwalAlert.errorInicioSesion("Error Login", "Correo o contraseña incorrectos");
     }
   };
+ 
 
   return (
     <>
@@ -80,6 +81,8 @@ const Login = () => {
           <Button type="submit" variant="contained" color="primary" onClick={handleSubmit(handleLogin)}>
             Iniciar sesión
           </Button>
+
+        
 
           <Button variant="outlined" color="secondary" onClick={() => setVerRegistro(true)}>
             Registrar

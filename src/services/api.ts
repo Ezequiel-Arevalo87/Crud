@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken } from "./authService";
 
 const api = axios.create({
-  baseURL: "https://localhost:7148/api/", // Reemplaza con tu URL real
+  baseURL: "https://localhost:7238/api/", // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },
@@ -38,9 +38,9 @@ const apiService = {
   },
 
   // Obtener un usuario por ID
-  async getUsuarioById(id: string) {
+  async getUsuarioById(id: any) {
     try {
-      const response = await api.get(`/usuarios/${id}`);
+      const response = await api.get(`/Barberias/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error al obtener usuario", error);

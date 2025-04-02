@@ -1,11 +1,18 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { getUserRole } from "../services/authService";
 
-const ProtectedRoute = () => {
-  const token = sessionStorage.getItem("token");
-  const rol:any = getUserRole()
+interface ProtectedRouteProps {
+  allowedRoles: string[];
+}
 
-  return token && rol.role !=='Cliente' ? <Outlet /> : <Navigate to="/" replace />;
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
+  const token = sessionStorage.getItem("token");
+  const userRole:any = getUserRole();
+
+  // Verifica si el usuario tiene un token y su rol está en los permitidos
+  const isAuthorized = token && allowedRoles.includes(userRole?.role);
+
+  return isAuthorized ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;

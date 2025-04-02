@@ -4,19 +4,28 @@ import { useEffect, useState } from "react";
 import apiService from "../services/api";
 import { useLocation } from "react-router-dom";
 import LoadingScissors from "../components/loading/LoadingScissors";
+import { getUserRole } from "../services/authService";
 
 const Home = () => {
-  
+   const rol:any = getUserRole();
   const [token , setToken] = useState( sessionStorage.getItem("token"))
-  const [barbershops, setBarbershops] = useState([]);
+  const [barbershops, setBarbershops] = useState<any>([]);
   const location = useLocation();
   const [loading, setLoading] = useState(false)
   const mensaje = location.state?.mensaje || "No hay mensaje";
 
   useEffect(() => {
-    obtenerAllBarberias();
-  }, []);
+    
+    if(rol?.role === "Admin"){
+      obtenerBarberiasPorId()
+    }else{
+      obtenerAllBarberias();
+    }
+    
+  }, [token]);
   useEffect(() => {
+
+
 
  
     if(mensaje == 'OK'){
@@ -25,13 +34,26 @@ const Home = () => {
     
   }, [mensaje == 'OK']);
 
-  console.log('ver token', token)
+
 
   const obtenerAllBarberias = async () => {
     setLoading(true)
     try {
       const data = await apiService.getUsuarios();
       setBarbershops(data);
+      setLoading(false)
+    } catch (error) {
+      console.error("Error al cargar barberías", error);
+      setLoading(false)
+    }
+  };
+
+  const obtenerBarberiasPorId = async () => {
+    setLoading(true)
+    const id = Number(rol?.nameid)
+    try {
+      const data = await apiService.getUsuarioById(id);
+      setBarbershops([data]);
       setLoading(false)
     } catch (error) {
       console.error("Error al cargar barberías", error);

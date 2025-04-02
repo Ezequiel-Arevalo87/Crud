@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getToken} from "./authService";
 
-const apiBarberia = axios.create({
+const apiHorarioBarberia = axios.create({
   baseURL: "https://localhost:7238/api", // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
@@ -9,11 +9,11 @@ const apiBarberia = axios.create({
 });
 
 // Interceptor para agregar el token en cada petición
-apiBarberia.interceptors.request.use(
+apiHorarioBarberia.interceptors.request.use(
   (config) => {
     const token = getToken();
     
- 
+    console.log({token})
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,18 +24,25 @@ apiBarberia.interceptors.request.use(
   }
 );
 
-// Métodos API con autenticación
-const apiTipoDocumentos = {
-  // Obtener lista de usuarios
-  async getTiposDocumentos() {
+
+const apiHorariosBarberiaService = {
+
+
+
+
+ // Crear barbero
+ async postHorarioBarberia(data: any) {
     try {
-      const response = await apiBarberia.get("/tipoDocumento");
+      const response = await apiHorarioBarberia.post("/horario", data, {
+        headers: { "Content-Type": "application/json" },
+      });
       return response.data;
     } catch (error) {
-      console.error("Error al obtener barberias", error);
+      console.error("Error al crear horario barberia", error);
       throw error;
     }
-  },
+  }
+
 };
 
-export default apiTipoDocumentos;
+export default apiHorariosBarberiaService;

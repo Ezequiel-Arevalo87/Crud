@@ -12,7 +12,7 @@ import ActualizarUsuario from "./ActualizarUsuario";
 import { getUserRole } from "../services/authService";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Add } from "@mui/icons-material";
+import { Today, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import apiBarberiaService from "../services/apiBarberiaService";
 import LoadingScissors from "../components/loading/LoadingScissors";
@@ -50,7 +50,7 @@ const Barberias = () => {
         try {
             const data = await apiBarberiaService.getBarberias();
             setBarberias(data);
-            setLoading(false )
+            setLoading(false)
         } catch (error) {
             console.error("Error al cargar barberias", error);
         }
@@ -92,17 +92,20 @@ const Barberias = () => {
     const handleRegistrar = (id: number) => {
         navigate("/registrar-barbero", { state: { id } });
     };
+    const handleHorarios = (idBarberia: number) => {
+        navigate("/horario-barberia", { state: { idBarberia } });
+    };
 
     if (loading) {
         return (
-          <div >
-            <LoadingScissors />
-          </div>
+            <div >
+                <LoadingScissors />
+            </div>
         );
-      }
+    }
     return (
         <>
-      
+
             <Container maxWidth={false} sx={{ p: 3 }}>
                 <Typography variant="h2" sx={{ mb: 3, textAlign: "center" }}>
                     Lista de Barberias Admin
@@ -118,13 +121,11 @@ const Barberias = () => {
                         p: 2,
                         boxShadow: 3,
                     }}>
-                        <br />
-                        <br />
-                        <Button variant="contained" color="primary" onClick={abrirFormularioCrearBarberia}>
+
+                        {(rol?.role === "Super_Admin") && <Button variant="contained" color="primary" onClick={abrirFormularioCrearBarberia}>
                             Agregar Barberia
-                        </Button>
-                        <br />
-                        <br />
+                        </Button>}
+
                         <Table size="small"> {/* Hace la tabla más compacta */}
                             <TableHead>
                                 <TableRow>
@@ -146,18 +147,31 @@ const Barberias = () => {
                                         <TableCell sx={{ p: 1 }}>{user.telefono}</TableCell>
                                         <TableCell sx={{ textAlign: "center", p: 1 }}>
                                             <Stack direction="row" spacing={1} justifyContent="center">
-                                                <Tooltip title="Actualizar">
-                                                    <IconButton color="warning" onClick={() => handActualizar(user.id)}>
-                                                        <EditIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                {rol?.role === "Super_Admin" && (
-                                                    <Tooltip title="Agregar Barbero">
-                                                        <IconButton color="error" onClick={() => handleRegistrar(user.id) }>
-                                                            <Add fontSize="small" />
+                                            {(rol?.role === "Super_Admin" || rol?.role === "Admin") && (
+                                                    <Tooltip title="Agregar Horario">
+                                                        <IconButton color="info" onClick={() => handleHorarios(user.id)}>
+                                                            <Today fontSize="small" />
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
+                                                {(rol?.role === "Super_Admin" || rol?.role === "Admin") && (
+                                                    <Tooltip title="Agregar Barbero">
+                                                        <IconButton color="success" onClick={() => handleRegistrar(user.id)}>
+                                                            <Visibility fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                              
+                                                {
+                                                    rol?.role === "Super_Admin" &&
+                                                    <Tooltip title="Actualizar">
+                                                        <IconButton color="warning" onClick={() => handActualizar(user.id)}>
+                                                            <EditIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                }
+
+
                                                 {rol?.role === "Super_Admin" && (
                                                     <Tooltip title="Eliminar">
                                                         <IconButton color="error" onClick={() => handleEliminarBarberia(user.id)}>
@@ -191,8 +205,8 @@ const Barberias = () => {
                             setActualizarDatosBarberias={setActualizarDatosBarberias}
                         /> : null
                 }
-            </Container> 
-           
+            </Container>
+
         </>
     );
 };

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { TextField, Button, MenuItem, Box, Card, CardContent, Typography } from "@mui/material";
+import { TextField, Button, MenuItem, Box, Card, CardContent, Typography, InputAdornment, IconButton } from "@mui/material";
 import apiBarberiaService from "../services/apiBarberiaService";
 import { useNavigate } from "react-router-dom";
 import apiTipoDocumentos from '../services/apiTipoDocumentos';
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 
 interface BarberiaForm {
@@ -13,40 +14,38 @@ interface BarberiaForm {
   direccion: string;
   telefono: string;
   email: string;
-  roleId: string ;
+  roleId: number ;
+  password: string
 }
 
 
 
 const FormBarberia: React.FC = () => {
+
   const navigate = useNavigate();
   const { control, handleSubmit, reset } = useForm<BarberiaForm>({
     defaultValues: {
-      roleId: '1'
+      roleId: 4
     }
   });
 
   const [tipoDocumentos, setTipoDocumentos] = useState([])
-
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(()=> {
     obtenerTiposDocumentos()
   },[])
 
   const obtenerTiposDocumentos = async () => {
-   
     try {
       const data =  await apiTipoDocumentos.getTiposDocumentos();
-      
       setTipoDocumentos(data)
-     
     } catch (error) {
       console.error("Error al guardar la barbería", error);
     }
   }
 
   const onSubmit = async (data: BarberiaForm) => {
-   
     try {
       await apiBarberiaService.postBarberia(data);
       alert("Barbería guardada con éxito");
@@ -120,6 +119,35 @@ const FormBarberia: React.FC = () => {
             rules={{ pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Correo no válido" } }}
             render={({ field, fieldState }) => (
               <TextField {...field} label="Email" error={!!fieldState.error} helperText={fieldState.error?.message} fullWidth />
+            )}
+          />
+          <Controller
+            name="password"
+            control={control}
+            defaultValue=""
+            rules={{
+              required: "La contraseña es obligatoria",
+              minLength: { value: 6, message: "Mínimo 6 caracteres" },
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Contraseña"
+                type={showPassword ? "text" : "password"}
+                variant="outlined"
+                fullWidth
+                error={!!error}
+                helperText={error?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
             )}
           />
 

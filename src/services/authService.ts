@@ -24,7 +24,7 @@ export const getUserRole = (): string | null => {
 
   try {
     const decoded: any = jwtDecode(token);
-    console.log(decoded.role);
+
     return decoded || null; // Asegúrate de que el backend envíe el rol con este nombre
   
   } catch (error) {
