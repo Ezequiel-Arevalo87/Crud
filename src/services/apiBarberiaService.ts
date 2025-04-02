@@ -1,15 +1,15 @@
 import axios from "axios";
-import { getToken } from "./authService";
+import { getToken} from "./authService";
 
-const api = axios.create({
-  baseURL: "https://localhost:7238/api/", // Reemplaza con tu URL real
+const apiBarberia = axios.create({
+  baseURL: "https://localhost:7238/api", // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 // Interceptor para agregar el token en cada petición
-api.interceptors.request.use(
+apiBarberia.interceptors.request.use(
   (config) => {
     const token = getToken();
     
@@ -25,11 +25,11 @@ api.interceptors.request.use(
 );
 
 // Métodos API con autenticación
-const apiService = {
+const apiBarberiaService = {
   // Obtener lista de usuarios
-  async getUsuarios() {
+  async getBarberias() {
     try {
-      const response = await api.get("/barberias");
+      const response = await apiBarberia.get("/barberias");
       return response.data;
     } catch (error) {
       console.error("Error al obtener barberias", error);
@@ -38,48 +38,50 @@ const apiService = {
   },
 
   // Obtener un usuario por ID
-  async getUsuarioById(id: any) {
+  async getBarberiaById(id: string) {
     try {
-      const response = await api.get(`/Barberias/${id}`);
+      const response = await apiBarberia.get(`/barberias/${id}`);
       return response.data;
     } catch (error) {
-      console.error("Error al obtener usuario", error);
+      console.error("Error al obtener barberia", error);
       throw error;
     }
   },
 
+ 
+
   // Crear usuario
-  async postUsuario(data: any) {
+  async postBarberia(data: any) {
     try {
-      const response = await api.post("/usuarios", data);
+      const response = await apiBarberia.post("/barberias", data);
       return response.data;
     } catch (error) {
-      console.error("Error al crear usuario", error);
+      console.error("Error al crear barberia", error);
       throw error;
     }
   },
 
   // Actualizar usuario
-  async putUsuario(id: string, data: any) {
+  async putBarberia(id: string, data: any) {
     try {
-      const response = await api.put(`/usuarios/${id}`, data);
+      const response = await apiBarberia.put(`/barberias/${id}`, data);
       return response.data;
     } catch (error) {
-      console.error("Error al actualizar usuario", error);
+      console.error("Error al actualizar barberia", error);
       throw error;
     }
   },
 
   // Eliminar usuario
-  async deleteUsuario(id: string) {
+  async deleteBarberia(id: string) {
     try {
-      const response = await api.delete(`/usuarios/${id}`);
+      const response = await apiBarberia.delete(`/barberias/${id}`);
       return response.data;
     } catch (error) {
-      console.error("Error al eliminar usuario", error);
+      console.error("Error al eliminar barberia", error);
       throw error;
     }
   },
 };
 
-export default apiService;
+export default apiBarberiaService;

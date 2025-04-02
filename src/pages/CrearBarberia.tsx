@@ -1,168 +1,163 @@
-
-
-import { TextField, Button, IconButton, InputAdornment, Box } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { TextField, Button, MenuItem, Box, Card, CardContent, Typography, InputAdornment, IconButton } from "@mui/material";
+import apiBarberiaService from "../services/apiBarberiaService";
+import { useNavigate } from "react-router-dom";
+import apiTipoDocumentos from '../services/apiTipoDocumentos';
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useState } from "react";
-import { Controller } from "react-hook-form";
-import apiService from "../services/api";
 
-interface CrearBarberia {
-   
-    formularioBarberia: any;
-    fetchUsuarios: any;
-    setactualizarDatosUsuarios: any;
-    setAbrirFormBarbe:any;
+
+interface BarberiaForm {
+  nombre: string;
+  tipoDocumento: number;
+  numeroDocumento: string;
+  direccion: string;
+  telefono: string;
+  email: string;
+  roleId: number ;
+  password: string
+}
+
+
+
+const FormBarberia: React.FC = () => {
+
+  const navigate = useNavigate();
+  const { control, handleSubmit, reset } = useForm<BarberiaForm>({
+    defaultValues: {
+      roleId: 4
+    }
+  });
+
+  const [tipoDocumentos, setTipoDocumentos] = useState([])
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(()=> {
+    obtenerTiposDocumentos()
+  },[])
+
+  const obtenerTiposDocumentos = async () => {
+    try {
+      const data =  await apiTipoDocumentos.getTiposDocumentos();
+      setTipoDocumentos(data)
+    } catch (error) {
+      console.error("Error al guardar la barbería", error);
+    }
   }
-  
 
-const CrearBarberia: React.FC<CrearBarberia> = ({formularioBarberia, fetchUsuarios, setactualizarDatosUsuarios, setAbrirFormBarbe}) => {
-
-
-
-    const [showPassword, setShowPassword] = useState(false);
-    const guardarBarberia = async(data: any) => {
-        
-        console.log(data)
-     
-
-        const request = {
-            nombre: data.nombre,
-            correo: data.correo,
-            clave: data.clave,
-            roleId: 1
-        }
-          try {
-                await apiService.postUsuario( request);
-                fetchUsuarios()
-                setactualizarDatosUsuarios('')
-                setAbrirFormBarbe(false)
-                formularioBarberia.reset()
-              } catch (error) {
-                console.error("Error al actualizar usuario", error);
-              
-              }
+  const onSubmit = async (data: BarberiaForm) => {
+    try {
+      await apiBarberiaService.postBarberia(data);
+      alert("Barbería guardada con éxito");
+      reset();
+      navigate("/barberias");
+    } catch (error) {
+      console.error("Error al guardar la barbería", error);
     }
+  };
 
-    const cancelar = () => {
-        setAbrirFormBarbe(false)
-        formularioBarberia.reset()
-        
-    }
+  return (
+    <Card sx={{ maxWidth: 500, margin: "auto", mt: 5, boxShadow: 3, borderRadius: 2 }}>
+      <CardContent>
+        <Typography variant="h5" align="center" gutterBottom>
+          Registrar Barbería
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Controller
+            name="nombre"
+            control={control}
+            defaultValue=""
+            rules={{ required: "El nombre es obligatorio" }}
+            render={({ field, fieldState }) => (
+              <TextField {...field} label="Nombre" error={!!fieldState.error} helperText={fieldState.error?.message} fullWidth />
+            )}
+          />
+          
+          <Controller
+            name="tipoDocumento"
+            control={control}
+            defaultValue={1}
+            render={({ field }) => (
+              <TextField select {...field} label="Tipo de Documento" fullWidth>
+                {tipoDocumentos.map((tipo:any) => (
+                  <MenuItem key={tipo.id} value={tipo.id}>
+                    {tipo.nombre}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
 
-    return (
-        <Box
-            component="form"
-            sx={{ display: "flex", flexDirection: "column", gap: 2, width: 300, mx: "auto", mt: 4 }}
-        >
-            {/* Campo nombre */}
-            <Controller
-                name="nombre"
-                control={formularioBarberia.control}
-                defaultValue=""
-                rules={{
-                    required: "El nombre es obligatorio",
+          <Controller
+            name="numeroDocumento"
+            control={control}
+            defaultValue=""
+            rules={{ required: "El número de documento es obligatorio" }}
+            render={({ field, fieldState }) => (
+              <TextField {...field} label="Número de Documento" error={!!fieldState.error} helperText={fieldState.error?.message} fullWidth />
+            )}
+          />
 
+          <Controller
+            name="direccion"
+            control={control}
+            defaultValue=""
+            render={({ field }) => <TextField {...field} label="Dirección" fullWidth />}
+          />
+
+          <Controller
+            name="telefono"
+            control={control}
+            defaultValue=""
+            render={({ field }) => <TextField {...field} label="Teléfono" fullWidth />}
+          />
+
+          <Controller
+            name="email"
+            control={control}
+            defaultValue=""
+            rules={{ pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Correo no válido" } }}
+            render={({ field, fieldState }) => (
+              <TextField {...field} label="Email" error={!!fieldState.error} helperText={fieldState.error?.message} fullWidth />
+            )}
+          />
+          <Controller
+            name="password"
+            control={control}
+            defaultValue=""
+            rules={{
+              required: "La contraseña es obligatoria",
+              minLength: { value: 6, message: "Mínimo 6 caracteres" },
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Contraseña"
+                type={showPassword ? "text" : "password"}
+                variant="outlined"
+                fullWidth
+                error={!!error}
+                helperText={error?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
                 }}
-                render={({ field, fieldState: { error } }) => (
-                    <TextField
-                        {...field}
-                        label="Nombre"
-                        variant="outlined"
-                        fullWidth
-                        error={!!error}
-                        helperText={error ? error.message : ""}
-                    />
-                )}
-            />
+              />
+            )}
+          />
 
-            {/* Campo nombre */}
-            <Controller
-                name="descripcion"
-                control={formularioBarberia.control}
-                defaultValue=""
-                rules={{
-                    required: "La descripción es obligatorio",
-
-                }}
-                render={({ field, fieldState: { error } }) => (
-                    <TextField
-                        {...field}
-                        label="Descripción"
-                        variant="outlined"
-                        fullWidth
-                        error={!!error}
-                        helperText={error ? error.message : ""}
-                    />
-                )}
-            />
-
-            {/* Campo Email */}
-            <Controller
-                name="correo"
-                control={formularioBarberia.control}
-                defaultValue=""
-                rules={{
-                    required: "El correo es obligatorio",
-                    pattern: {
-                        value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-                        message: "Correo inválido",
-                    },
-                }}
-                render={({ field, fieldState: { error } }) => (
-                    <TextField
-                        {...field}
-                        label="Correo"
-                        variant="outlined"
-                        fullWidth
-                        error={!!error}
-                        helperText={error ? error.message : ""}
-                    />
-                )}
-            />
-
-            {/* Campo Password */}
-            <Controller
-                name="clave"
-                control={formularioBarberia.control}
-                defaultValue=""
-                rules={{
-                    required: "La contraseña es obligatoria",
-                    minLength: { value: 6, message: "Mínimo 6 caracteres" },
-                }}
-                render={({ field, fieldState: { error } }) => (
-                    <TextField
-                        {...field}
-                        label="Contraseña"
-                        type={showPassword ? "text" : "password"}
-                        variant="outlined"
-                        fullWidth
-                        error={!!error}
-                        helperText={error ? error.message : ""}
-                        slotProps={{
-                            input: {
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            },
-                        }}
-                    />
-                )}
-            />
-            {/* Botón de Login */}
-            <Button type="submit" variant="contained" color="primary"
-                onClick={(formularioBarberia.handleSubmit(guardarBarberia))}>
-                Guardar Barberia
-            </Button>
-            <Button type="submit" variant="contained" color="primary"
-               onClick={() => cancelar()}>
-                Cancelar
-            </Button>
+          <Button type="submit" variant="contained" color="primary" sx={{ mt: 2, borderRadius: 2 }}>
+            Guardar
+          </Button>
         </Box>
-    );
+      </CardContent>
+    </Card>
+  );
 };
 
-export default CrearBarberia;
+export default FormBarberia;

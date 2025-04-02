@@ -1,0 +1,25 @@
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to bottom, #ffffff, #e0e0e0); // Fondo con degradado
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+  }
+  
+  .scissors-icon {
+    font-size: 5rem;
+    color: #d32f2f; // Color rojo típico de barbería
+    margin-bottom: 1rem;
+  }
+  
+  .spinner-icon {
+    font-size: 3rem;
+    color: #1976d2; // Azul típico de barbería
+  }
+  
