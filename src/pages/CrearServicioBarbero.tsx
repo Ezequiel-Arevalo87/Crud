@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { TextField, Button, MenuItem, Box, Card, CardContent, Typography } from "@mui/material";
 import apiServiciosService from "../services/apiServiciosService";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 
 interface ServicioForm {
@@ -25,34 +25,68 @@ const FormServicio: React.FC = () => {
   
 
     const idBarbero = location.state?.idBarbero ; 
+    const idServicio = location.state?.idServicio ; 
   const { control, handleSubmit, reset, setValue } = useForm<ServicioForm>({
     defaultValues: {
       estado: "Activo"
     }
   });
 
+  const [nombreBoton, setNombreBoton] = useState('Guardar')
+  const [titulo, setTitulo] = useState('Registrar Servicio')
+
   useEffect(()=>{
-    setValue('barberoId', idBarbero )
+
+    if(idServicio !== undefined) {
+      setValue('servicio', idServicio.servicio )
+      setValue('estado', idServicio.estado )
+      setValue('descripcion', idServicio.descripcion )
+      setValue('foto', idServicio.foto )
+      setValue('precioEspecial', idServicio.precioEspecial )
+      setValue('precio', idServicio.precio )
+      setValue('tiempo', idServicio.tiempo )
+      setValue('observacion', idServicio.observacion )
+      setValue('observacion', idServicio.observacion )
+      setValue('barberoId', idServicio.barberoId )
+      setNombreBoton("Actualizar")
+      setTitulo("Actualizar Servicio")
+    }else{
+      setValue('barberoId', idBarbero )
+    }
+   
+   
   },[])
 
 
 
   const onSubmit = async (data: ServicioForm) => {
-    try {
-      await apiServiciosService.postServicio(data);
-      alert("Servicio guardado con éxito");
-      reset();
-      navigate("/servicios-barbero", {state :{idBarbero}});
-    } catch (error) {
-      console.error("Error al guardar el servicio", error);
+    if(idServicio !== undefined){
+      try {
+        await apiServiciosService.putServicioPorId(idServicio.id, data);
+        alert("Servicio guardado con éxito");
+        reset();
+        navigate("/servicios-barbero", {state :{idBarbero}});
+      } catch (error) {
+        console.error("Error al guardar el servicio", error);
+      }
+    }else{
+      try {
+        await apiServiciosService.postServicio(data);
+        alert("Servicio guardado con éxito");
+        reset();
+        navigate("/servicios-barbero", {state :{idBarbero}});
+      } catch (error) {
+        console.error("Error al guardar el servicio", error);
+      }
     }
+
   };
 
   return (
     <Card sx={{ maxWidth: 500, margin: "auto", mt: 5, boxShadow: 3, borderRadius: 2 }}>
       <CardContent>
         <Typography variant="h5" align="center" gutterBottom>
-          Registrar Servicio
+         {titulo}
         </Typography>
         <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Controller
@@ -128,12 +162,12 @@ const FormServicio: React.FC = () => {
             name="barberoId"
             control={control}
          
-            render={({ field }) => <TextField {...field} label="barberoId" fullWidth />}
+            render={({ field }) => <TextField  disabled {...field} label="barberoId" fullWidth />}
           />
 
 
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2, borderRadius: 2 }}>
-            Guardar
+          {nombreBoton}
           </Button>
         </Box>
       </CardContent>

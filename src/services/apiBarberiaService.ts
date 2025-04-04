@@ -13,7 +13,7 @@ apiBarberia.interceptors.request.use(
   (config) => {
     const token = getToken();
     
-    console.log({token})
+   
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -38,7 +38,7 @@ const apiBarberiaService = {
   },
 
   // Obtener un usuario por ID
-  async getBarberiaById(id: string) {
+  async getBarberiaById(id: number) {
     try {
       const response = await apiBarberia.get(`/barberias/${id}`);
       return response.data;
@@ -61,7 +61,7 @@ const apiBarberiaService = {
     }
   },
 
-  // Actualizar usuario
+
   async putBarberia(id: string, data: any) {
     try {
       const response = await apiBarberia.put(`/barberias/${id}`, data);

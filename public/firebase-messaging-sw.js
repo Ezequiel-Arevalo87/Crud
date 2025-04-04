@@ -16,8 +16,7 @@ const messaging = firebase.messaging();
 
 // 📩 Manejo de notificaciones en segundo plano
 messaging.onBackgroundMessage(async (payload) => {
-  console.log("🔥 Notificación en segundo plano recibida:", payload);
-
+ 
   try {
     if (!payload.notification) {
       console.warn("⚠️ No se recibió la notificación en el payload.");

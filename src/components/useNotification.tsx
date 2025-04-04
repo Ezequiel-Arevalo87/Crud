@@ -14,7 +14,7 @@ const useNotification = () => {
   useEffect(() => {
     // 📩 Escuchar notificaciones en primer plano
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("📩 Notificación en primer plano:", payload);
+  
 
       setNotification({
         title: payload.notification?.title || "Notificación",
@@ -30,8 +30,6 @@ const useNotification = () => {
     // 📩 Escuchar notificaciones en segundo plano desde el Service Worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", (event) => {
-        console.log("📩 Notificación en React desde SW:", event.data);
-
         if (event.data?.type === "NEW_NOTIFICATION") {
           const { notification, data } = event.data.payload;
 

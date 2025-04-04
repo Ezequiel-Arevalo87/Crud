@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Card, CardContent, Button, Typography, Badge, List, ListItem, ListItemText,
-  IconButton, Modal, TextField, Box, Avatar, Collapse
+  IconButton, Modal, TextField, Box, Avatar, Collapse,
+  Divider
 } from '@mui/material';
 import { FaBell, FaClock, FaMinus, FaPlus } from 'react-icons/fa';
 import dayjs from 'dayjs';
@@ -27,6 +28,8 @@ const BarberPage: React.FC = () => {
 
   const role: any = getUserRole();
   const notification = useNotification();
+
+
 
   // Reloj en tiempo real
   useEffect(() => {
@@ -71,10 +74,9 @@ const BarberPage: React.FC = () => {
     return () => clearInterval(interval);
   }, [listaTurnos]);
 
-  // Notificación nueva
+
   useEffect(() => {
     if (notification?.data) {
-      console.log("📩 Turno por notificación:", notification.data);
       agregarTurnoDesdeNotificacion(notification.data);
     }
   }, [notification]);
@@ -126,7 +128,7 @@ const BarberPage: React.FC = () => {
   const obtenerServiciosBarbero = async () => {
     try {
       const data = await apiServiciosService.getServicios();
-      setFiltroServicioPorBarbero(data.filter((b: any) => b.barberoId === Number(role.nameid)));
+      setFiltroServicioPorBarbero(data.filter((b: any) => b.barberoId === Number(role.nameid) && b.estado === 1));
     } catch {
       console.log('Error al obtener los servicios');
     }
@@ -149,7 +151,7 @@ const BarberPage: React.FC = () => {
   return (
     <Box sx={{ backgroundColor: '#f7f7f7', minHeight: '100vh', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Card sx={{ p: 3, boxShadow: 3, maxWidth: '900px', width: '90%', mb: 4 }}>
-        <Typography variant="h5">Barbería</Typography>
+        <Typography variant="h5" component="div">Barbería</Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
           <Typography><FaClock /> {time}</Typography>
           <Typography>{date}</Typography>
@@ -170,32 +172,45 @@ const BarberPage: React.FC = () => {
         </Box>
         <Collapse in={!isServiceCollapsed}>
           <List>
-            {filtroServicioPorBarbero.map((ser: any) => (
-              <ListItem key={ser?.id}>
-                <Avatar src={ser?.foto} alt="Cliente" sx={{ mr: 2 }} />
-                <ListItemText
-                  primary={ser?.servicioNombre}
-                  secondary={
-                    <>
-                      <Typography variant="body2" color="text.primary">{`${ser?.tiempo}.Min`}</Typography>
-                      <br /><Typography variant="body2" color="text.secondary">{ser?.descripcion}</Typography>
-                      <br /><Typography variant="body2" fontWeight="bold">
-                        {ser?.precio > 0 && ser?.precioEspecial > 0 ? (
-                          <>
-                            <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through", mr: 1 }}>
-                              {formatCurrency(Math.max(ser.precio, ser.precioEspecial))}
-                            </Typography>
-                            {formatCurrency(Math.min(ser.precio, ser.precioEspecial))}
-                          </>
-                        ) : formatCurrency(ser?.precio === 0 ? ser.precioEspecial : ser?.precio)}
-                      </Typography>
-                      <br /><Typography variant="body2" color="text.disabled">{ser?.observacion}</Typography>
-                    </>
-                  }
-                />
-              </ListItem>
+            {filtroServicioPorBarbero.map((ser: any, index: number) => (
+              <React.Fragment key={ser?.id}>
+                <ListItem alignItems="flex-start">
+                  <Avatar src={ser?.foto} alt="Cliente" sx={{ mr: 2 }} />
+                  <ListItemText
+                    primary={ser?.servicio}
+                    secondary={
+                      <>
+                        <Typography variant="body2" color="text.primary">{`${ser?.tiempo} min`}</Typography>
+                        <br />
+                        <Typography variant="body2" color="text.secondary">{ser?.descripcion}</Typography>
+                        <br />
+                        <Typography variant="body2" fontWeight="bold">
+                          {ser?.precio > 0 && ser?.precioEspecial > 0 ? (
+                            <>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ textDecoration: "line-through", mr: 1, display: 'inline' }}
+                              >
+                                {formatCurrency(Math.max(ser.precio, ser.precioEspecial))}
+                              </Typography>
+                              {formatCurrency(Math.min(ser.precio, ser.precioEspecial))}
+                            </>
+                          ) : formatCurrency(ser?.precio === 0 ? ser.precioEspecial : ser?.precio)}
+                        </Typography>
+                        <br />
+                        <Typography variant="body2" color="text.disabled">{ser?.observacion}</Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+
+                {/* Solo agregamos el Divider si no es el último elemento */}
+                {index < filtroServicioPorBarbero.length - 1 && <Divider variant="inset" component="li" />}
+              </React.Fragment>
             ))}
           </List>
+
         </Collapse>
       </Card>
 

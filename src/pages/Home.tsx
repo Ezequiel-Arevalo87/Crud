@@ -24,14 +24,9 @@ const Home = () => {
     
   }, [token]);
   useEffect(() => {
-
-
-
- 
     if(mensaje == 'OK'){
       setToken(null)
     }
-    
   }, [mensaje == 'OK']);
 
 
@@ -82,7 +77,7 @@ const Home = () => {
               <CardMedia
                 component="img"
                 height="200"
-                image={barber?.image || "/default-barber.jpg"}
+                image={barber?.fotoBarberia || "/default-barber.jpg"}
                 alt={barber?.nombre}
                 sx={{ objectFit: "cover" }}
               />

@@ -1,4 +1,16 @@
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getUserRole } from "../services/authService";
@@ -7,59 +19,128 @@ import SwalAlert from "./alerts/SwalAlert";
 const Navbar = () => {
   const [token, setToken] = useState(sessionStorage.getItem("token"));
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const location = useLocation();
-  const navigate = useNavigate(); // Para redirigir sin recargar la página
-  const roles:any = getUserRole();
+  const navigate = useNavigate();
+
+  const roles: any = getUserRole();
+
   useEffect(() => {
     setToken(sessionStorage.getItem("token"));
-    const role:any = getUserRole();
+    const role: any = getUserRole();
     setUserRole(role?.role);
   }, [location.pathname]);
 
   const handleLogout = async () => {
-    const result = await SwalAlert.confirCerrarSesion("¿Estás seguro?", "Cerrar sesión");
+    const result = await SwalAlert.confirCerrarSesion(
+      "¿Estás seguro?",
+      "Cerrar sesión"
+    );
     if (result.isConfirmed) {
       sessionStorage.removeItem("token");
       setToken(null);
       setUserRole(null);
       navigate("/", { state: { mensaje: "OK" } });
     }
-
   };
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const menuItems = [
+    { label: "Home", to: "/" },
+    ...(token && userRole === "Barbero"
+      ? [{ label: "Barbero", to: "/barbero" }]
+      : token
+      ? [{ label: "Barberías", to: "/barberias" }]
+      : []),
+    userRole
+      ? { label: "Logout", action: handleLogout }
+      : { label: "Login", to: "/login" },
+  ];
+
   return (
-    <AppBar position="static">
-      <Toolbar>
-      <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          {userRole ? `Bienvenido, ${roles?.email} - ${userRole}` : "BarberApp"}
-        </Typography>
-        <Box>
-          <Button color="inherit" component={Link} to="/">
-            Home
-          </Button>
+    <AppBar position="static" sx={{ bgcolor: "#13487a" }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+       {isMobile ? <Typography variant="h6" component="div">
+          {`Hola, ${roles?.email}`}
+        </Typography>: <Typography variant="h6" component="div">
+          {userRole ? `Hola, ${roles?.email} (${userRole})` : "BarberApp"}
+        </Typography>}
 
-          {(token && userRole  === 'Barbero') && (
-            <Button color="inherit" component={Link} to="/barbero">
-              Barbero
-            </Button>
-          )}
-
-          {(token && userRole  !== 'Barbero') && (
-            <Button color="inherit" component={Link} to="/barberias">
-              Barberias
-            </Button>
-          )}
-
-          {userRole  ? (
-            <Button color="inherit" onClick={handleLogout}>
-              Logout
-            </Button>
-          ) : (
-            <Button color="inherit" component={Link} to="/login">
-              Login
-            </Button>
-          )}
-        </Box>
+        {isMobile ? (
+          
+          <>
+            <IconButton
+              edge="end"
+              color="inherit"
+              onClick={handleMenuOpen}
+              size="large"
+            >
+              <MenuIcon />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
+              {menuItems.map((item, index) =>
+                item.action ? (
+                  <MenuItem
+                    key={index}
+                    onClick={() => {
+                      handleMenuClose();
+                      item.action();
+                    }}
+                  >
+                    {item.label}
+                  </MenuItem>
+                ) : (
+                  <MenuItem
+                    key={index}
+                    component={Link}
+                    to={item.to}
+                    onClick={handleMenuClose}
+                  >
+                    {item.label}
+                  </MenuItem>
+                )
+              )}
+            </Menu>
+          </>
+        ) : (
+          <Box sx={{ display: "flex", gap: 2 }}>
+            {menuItems.map((item, index) =>
+              item.action ? (
+                <Button
+                  key={index}
+                  color="inherit"
+                  onClick={item.action}
+                  sx={{ textTransform: "none" }}
+                >
+                  {item.label}
+                </Button>
+              ) : (
+                <Button
+                  key={index}
+                  color="inherit"
+                  component={Link}
+                  to={item.to}
+                  sx={{ textTransform: "none" }}
+                >
+                  {item.label}
+                </Button>
+              )
+            )}
+          </Box>
+        )}
       </Toolbar>
     </AppBar>
   );
