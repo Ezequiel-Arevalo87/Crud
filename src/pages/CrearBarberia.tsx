@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { TextField, Button, MenuItem, Box, Card, CardContent, Typography, InputAdornment, IconButton } from "@mui/material";
+import { TextField, Button, MenuItem, Box, Card, CardContent, Typography, InputAdornment, IconButton, useMediaQuery } from "@mui/material";
 import apiBarberiaService from "../services/apiBarberiaService";
 import { useNavigate } from "react-router-dom";
 import apiTipoDocumentos from '../services/apiTipoDocumentos';
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import theme from "../components/theme/theme";
 
 
 interface BarberiaForm {
@@ -15,7 +16,8 @@ interface BarberiaForm {
   telefono: string;
   email: string;
   roleId: number ;
-  password: string
+  password: string;
+  fotoBarberia: string
 }
 
 
@@ -23,6 +25,7 @@ interface BarberiaForm {
 const FormBarberia: React.FC = () => {
 
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { control, handleSubmit, reset } = useForm<BarberiaForm>({
     defaultValues: {
       roleId: 4
@@ -59,10 +62,19 @@ const FormBarberia: React.FC = () => {
   return (
     <Card sx={{ maxWidth: 500, margin: "auto", mt: 5, boxShadow: 3, borderRadius: 2 }}>
       <CardContent>
-        <Typography variant="h5" align="center" gutterBottom>
-          Registrar Barbería
-        </Typography>
+      { isMobile ? <Typography variant="h4" sx={{ mb: 3, textAlign: "center" }}>
+                    Crear Barberias
+                </Typography>: <Typography variant="h3" sx={{ mb: 3, textAlign: "center" }}>
+                Crear Barberias
+                </Typography>}
         <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+
+        <Controller
+            name="fotoBarberia"
+            control={control}
+            defaultValue=""
+            render={({ field }) => <TextField {...field} label="URL de la Foto" fullWidth />}
+          />
           <Controller
             name="nombre"
             control={control}

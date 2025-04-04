@@ -13,7 +13,7 @@ apiBarbero.interceptors.request.use(
   (config) => {
     const token = getToken();
     
-    console.log({token})
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -71,16 +71,16 @@ const apiBarberoService = {
     }
   },
 
-  // Actualizar usuario
-//   async putBarberia(id: string, data: any) {
-//     try {
-//       const response = await apiBarberia.put(`/barberias/${id}`, data);
-//       return response.data;
-//     } catch (error) {
-//       console.error("Error al actualizar barberia", error);
-//       throw error;
-//     }
-//   },
+ 
+  async putBarbero(id: string, data: any) {
+    try {
+      const response = await apiBarbero.put(`/barbero/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error al actualizar barberia", error);
+      throw error;
+    }
+  },
 
   // Eliminar usuario
 //   async deleteBarberia(id: string) {

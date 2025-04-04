@@ -1,239 +1,205 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
-    TextField, Button, Box, Typography, Stepper, Step, StepLabel,
-    InputAdornment, IconButton,
-    MenuItem
+    TextField, Button, Box, Typography, InputAdornment, IconButton, MenuItem
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import apiTipoDocumentos from "../services/apiTipoDocumentos";
 import { useLocation, useNavigate } from "react-router-dom";
+import apiTipoDocumentos from "../services/apiTipoDocumentos";
 import apiBarberoService from "../services/apiBarberoService";
 
 interface FormData {
     email: string;
     password: string;
     nombre: string;
-    tipoDocumento: number;
+    tipoDocumento: string;
     numeroDocumento: string;
     direccion: string;
     telefono: string;
     roleId: number;
     barberiaId: number;
+    fotoBarbero: string;
+    estado: number;
 }
-
-const steps = ["Cuenta", "Información Personal"];
 
 const CrearBarberos = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [activeStep, setActiveStep] = useState(0);
-    const [formData, setFormData] = useState<Partial<FormData>>({});
+    const [tipoDocumentos, setTipoDocumentos] = useState([]);
     const [showPassword, setShowPassword] = useState(false);
-    const [tipoDocumentos, setTipoDocumentos] = useState([])
+    const idBarberia = location.state?.idBarberia;
 
-    const { control, handleSubmit, setValue, reset } = useForm<FormData>();
-    const idBarberia = location.state?.idBarberia; // Obtenemos el ID de `state`
-
-    useEffect(()=>{
-        if(!idBarberia){
-            navigate('/barberias')
+    const { control, handleSubmit } = useForm<FormData>({
+        defaultValues: {
+            email: "",
+            password: "",
+            nombre: "",
+            tipoDocumento: "",
+            numeroDocumento: "",
+            direccion: "",
+            telefono: "",
+            roleId: 2,
+            barberiaId: idBarberia,
+            fotoBarbero: "",
+            estado: 1,
         }
-
-    },[])
-
-    useEffect(() => {
-       
-        reset(formData);
-    }, [activeStep, reset, formData]);
+    });
 
     useEffect(() => {
-    
-        obtenerTiposDocumentos()
-    }, [])
-
-    setValue('roleId', 2)
-    setValue('barberiaId', idBarberia)
+        if (!idBarberia) {
+            navigate("/barberias");
+        } else {
+            obtenerTiposDocumentos();
+        }
+    }, []);
 
     const obtenerTiposDocumentos = async () => {
-
         try {
             const data = await apiTipoDocumentos.getTiposDocumentos();
-            setTipoDocumentos(data)
+            setTipoDocumentos(data);
         } catch (error) {
-            console.error("Error al guardar la barbería", error);
+            console.error("Error al obtener documentos", error);
         }
-    }
-
-    const onNext = (data: Partial<FormData>) => {
-        setFormData((prev) => {
-            const newData = { ...prev, ...data };
-            return newData;
-        });
-
-       
-        Object.entries(data).forEach(([key, value]) => setValue(key as keyof FormData, value));
-        setActiveStep((prevStep) => prevStep + 1);
     };
 
     const onSubmit = async (data: FormData) => {
-        const finalData = { ...formData, ...data };
-        const id = idBarberia
         try {
-            await apiBarberoService.postBarbero(finalData);
+            await apiBarberoService.postBarbero(data);
             alert("Barbero guardado con éxito");
-            navigate("/registrar-barbero", {state : {id}});
+            navigate("/registrar-barbero", { state: { id: idBarberia } });
         } catch (error) {
-            console.error("Error al guardar la barbería", error);
+            console.error("Error al guardar barbero", error);
         }
     };
-
 
     return (
         <Box sx={{ width: "100%", maxWidth: 400, margin: "auto", mt: 5 }}>
             <Typography variant="h5" align="center" gutterBottom>
                 Registro Barbero
             </Typography>
-            <Stepper activeStep={activeStep} alternativeLabel>
-                {steps.map((label) => (
-                    <Step key={label}>
-                        <StepLabel>{label}</StepLabel>
-                    </Step>
-                ))}
-            </Stepper>
 
-            <Box component="form" onSubmit={handleSubmit(activeStep === 0 ? onNext : onSubmit)} sx={{ mt: 3 }}>
-                {activeStep === 0 ? (
-                    <>
-                        <Controller
-                            name="email"
-                            control={control}
-                            defaultValue=""
-                            rules={{ required: "El email es requerido" }}
-                            render={({ field, fieldState }) => (
-                                <TextField {...field} label="Email" type="email" fullWidth margin="normal" error={!!fieldState.error} helperText={fieldState.error?.message} />
-                            )}
+            <Box component="form" autoComplete="off" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
+                <Controller
+                    name="email"
+                    control={control}
+                    rules={{ required: "El email es requerido" }}
+                    render={({ field, fieldState }) => (
+                        <TextField
+                            {...field}
+                            label="Email"
+                            type="email"
+                            autoComplete="off"
+                            fullWidth
+                            margin="normal"
+                            error={!!fieldState.error}
+                            helperText={fieldState.error?.message}
                         />
-                        <Controller
-                            name="password"
-                            control={control}
-                            defaultValue=""
-                            rules={{ required: "La contraseña es requerida" }}
-                            render={({ field, fieldState }) => (
-                                <TextField
-                                    {...field}
-                                    label="Contraseña"
-                                    type={showPassword ? "text" : "password"}
-                                    fullWidth
-                                    margin="normal"
-                                    error={!!fieldState.error}
-                                    helperText={fieldState.error?.message}
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-                            )}
-                        />
-                        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-                            Siguiente
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <Controller
-                            name="nombre"
-                            control={control}
-                            defaultValue=""
-                            rules={{ required: "El nombre es requerido" }}
-                            render={({ field, fieldState }) => (
-                                <TextField {...field} label="Nombre" type="text" fullWidth margin="normal" error={!!fieldState.error} helperText={fieldState.error?.message} />
-                            )}
-                        />
-                        <Controller
-                            name="tipoDocumento"
-                            control={control}
-                            defaultValue={1}
-                            rules={{ required: "El tipo Documento es requerido" }}
-                            render={({ field, fieldState }) => (
-                                <TextField select {...field} label="Tipo de Documento" error={!!fieldState.error} helperText={fieldState.error?.message} fullWidth>
-                                    {tipoDocumentos.map((tipo: any) => (
-                                        <MenuItem key={tipo.id} value={tipo.id}>
-                                            {tipo.nombre}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            )}
-                        />
-                        <Controller
-                            name="numeroDocumento"
-                            control={control}
-                            defaultValue=""
-                            rules={{ required: "El número Documento es requerido" }}
-                            render={({ field, fieldState }) => (
-                                <TextField {...field} label="Número de Documento" error={!!fieldState.error} helperText={fieldState.error?.message} fullWidth margin="normal" />
-                            )}
-                        />
-                        <Controller
-                            name="direccion"
-                            control={control}
-                            defaultValue=""
-                            rules={{ required: "La dirección es requerido" }}
-                            render={({ field, fieldState }) => (
-                                <TextField {...field} label="Dirección" error={!!fieldState.error} helperText={fieldState.error?.message} fullWidth margin="normal" />
-                            )}
-                        />
-                        <Controller
-                            name="telefono"
-                            control={control}
-                            rules={{ required: "El teléfon es requerido" }}
-                            defaultValue=""
-                            render={({ field, fieldState }) => (
-                                <TextField {...field} label="Teléfono" error={!!fieldState.error} helperText={fieldState.error?.message} fullWidth margin="normal" />
-                            )}
-                        />
-                        <Controller
-                            name="roleId"
-                            control={control}
+                    )}
+                />
 
-                       
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Role ID"
-                                    disabled
-                                    type="number"
-                                    fullWidth margin="normal" />
-                            )}
+                <Controller
+                    name="password"
+                    control={control}
+                    rules={{
+                        required: "La contraseña es requerida",
+                        minLength: { value: 6, message: "Mínimo 6 caracteres" }
+                    }}
+                    render={({ field, fieldState }) => (
+                        <TextField
+                            {...field}
+                            label="Contraseña"
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="new-password"
+                            fullWidth
+                            margin="normal"
+                            error={!!fieldState.error}
+                            helperText={fieldState.error?.message}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
-                        <Controller
-                            name="barberiaId"
-                            control={control}
-                       
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    disabled
-                                    label="Barbería ID"
-                                    type="number"
-                                    fullWidth margin="normal" />
-                            )}
-                        />
-                        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                            <Button variant="outlined" onClick={() => setActiveStep((prev) => prev - 1)}>
-                                Atrás
-                            </Button>
-                            <Button type="submit" variant="contained">
-                                Registrar
-                            </Button>
-                        </Box>
-                    </>
-                )}
+                    )}
+                />
+
+
+                <Controller
+                    name="nombre"
+                    control={control}
+                    rules={{ required: "El nombre es requerido" }}
+                    render={({ field, fieldState }) => (
+                        <TextField {...field} label="Nombre" fullWidth margin="normal"
+                            error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    )}
+                />
+                <Controller
+                    name="fotoBarbero"
+                    control={control}
+                    rules={{ required: "La foto es requerida" }}
+                    render={({ field, fieldState }) => (
+                        <TextField {...field} label="Foto URL" fullWidth margin="normal"
+                            error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    )}
+                />
+                <Controller
+                    name="tipoDocumento"
+                    control={control}
+                    rules={{ required: "El tipo de documento es requerido" }}
+                    render={({ field, fieldState }) => (
+                        <TextField {...field} select label="Tipo de Documento" fullWidth
+                            error={!!fieldState.error} helperText={fieldState.error?.message}>
+                            <MenuItem value="">Selecciona un tipo</MenuItem>
+                            {tipoDocumentos.map((tipo: any) => (
+                                <MenuItem key={tipo.id} value={tipo.id}>{tipo.nombre}</MenuItem>
+                            ))}
+                        </TextField>
+                    )}
+                />
+                <Controller
+                    name="numeroDocumento"
+                    control={control}
+                    rules={{ required: "El número de documento es requerido" }}
+                    render={({ field, fieldState }) => (
+                        <TextField {...field} label="Número de Documento" fullWidth margin="normal"
+                            error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    )}
+                />
+                <Controller
+                    name="estado"
+                    control={control}
+                    render={({ field }) => (
+                        <TextField {...field} select label="Estado" fullWidth margin="normal">
+                            <MenuItem value={1}>Activo</MenuItem>
+                            <MenuItem value={0}>Inactivo</MenuItem>
+                        </TextField>
+                    )}
+                />
+                <Controller
+                    name="direccion"
+                    control={control}
+                    rules={{ required: "La dirección es requerida" }}
+                    render={({ field, fieldState }) => (
+                        <TextField {...field} label="Dirección" fullWidth margin="normal"
+                            error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    )}
+                />
+                <Controller
+                    name="telefono"
+                    control={control}
+                    rules={{ required: "El teléfono es requerido" }}
+                    render={({ field, fieldState }) => (
+                        <TextField {...field} label="Teléfono" fullWidth margin="normal"
+                            error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    )}
+                />
+                <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
+                    Registrar
+                </Button>
             </Box>
         </Box>
     );

@@ -38,7 +38,7 @@ const HorariosBarberia = () => {
     };
 
     const guardarHorarios = async () => {
-        debugger
+        
         try {
             const horariosAEnviar = horarios.map((h) => ({
                 barberiaId: h.barberiaId,
