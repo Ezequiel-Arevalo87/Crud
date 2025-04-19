@@ -1,7 +1,11 @@
-// --- TurnosProgramadosEstados.tsx ---
-import React, { useState, useEffect } from 'react';
-import { Box, Tab, Tabs, List, ListItem, ListItemText, Avatar, Button, Typography } from '@mui/material';
+import { useState, useEffect } from 'react';
+import {
+  Box, Tab, Tabs, List, ListItem, ListItemText, Avatar, Button, Typography
+} from '@mui/material';
 import Timer from './Timer';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+dayjs.extend(duration);
 
 interface Turno {
   id: number;
@@ -9,8 +13,9 @@ interface Turno {
   clienteApellido: string;
   servicioNombre: string;
   fechaHoraInicio: string;
-  duracion: string; // ✅ ahora es string en formato "HH:mm:ss"
-  estado: string;
+  duracion: string;
+  estado: string | number;
+  barberoId: number;
 }
 
 interface TurnosProgramadosEstadosProps {
@@ -18,60 +23,74 @@ interface TurnosProgramadosEstadosProps {
   handleOpenModal: (id: number) => void;
 }
 
+const normalizarEstado = (estado: string | number) => {
+  if (estado === 0 || estado === '0') return 'PENDIENTE';
+  if (estado === 1 || estado === '1') return 'EN PROCESO';
+  if (estado === 2 || estado === '2') return 'CERRADO';
+  if (estado === 3 || estado === '3') return 'CANCELADO';
+  if (estado === 4 || estado === '4') return 'DISPONIBLE';
+  return estado;
+};
+
+const obtenerEstiloTurno = (estado: string | number) => {
+  const est = normalizarEstado(estado);
+  switch (est) {
+    case 'EN PROCESO': return { backgroundColor: '#ffe082' };
+    case 'PENDIENTE': return { backgroundColor: '#e3f2fd' };
+    default: return {};
+  }
+};
+
 const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ listaTurnos, handleOpenModal }) => {
   const [selectedTab, setSelectedTab] = useState(0);
-  const [turnos, setTurnos] = useState<Turno[]>([]);
+  const [turnosActualizados, setTurnosActualizados] = useState<Turno[]>([]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const actualizados = listaTurnos.map((turno) => {
-        const fechaInicio = new Date(turno.fechaHoraInicio);
-        const [h, m, s] = turno.duracion.split(":").map(Number);
-        const duracionMs = (h * 3600 + m * 60 + s) * 1000;
-        const fechaFin = new Date(fechaInicio.getTime() + duracionMs);
-  
-        let nuevoEstado = turno.estado;
-  
-        if (turno.estado !== 'CERRADO') {
-          if (now >= fechaInicio && now < fechaFin) {
-            nuevoEstado = 'EN_PROCESO';
-          } else if (now >= fechaFin) {
-            nuevoEstado = 'CERRADO';
-          } else {
-            nuevoEstado = 'Pendiente';
-          }
+    debugger
+    const actualizarEstados = () => {
+      const ahora = dayjs();
+    
+      const actualizados = listaTurnos.map(turn => {
+        const estadoOriginal = Number(turn.estado);
+    
+        // ✅ Respetamos los estados ya definidos desde el backend
+        if (estadoOriginal === 2 || estadoOriginal === 4 || estadoOriginal === 3) {
+          return turn; // Ya está cerrado o cancelado
         }
-  
-        return { ...turno, estado: nuevoEstado };
+    
+        const inicio = dayjs(turn.fechaHoraInicio);
+        const [h, m, s] = turn.duracion.split(':').map(Number);
+        const minutos = h * 60 + m + Math.floor(s / 60);
+        const fin = inicio.add(minutos, 'minute');
+    
+        if (ahora.isAfter(fin)) {
+          return { ...turn, estado: 2 }; // CERRADO (desde frontend solo si no venía cerrado)
+        } else if (ahora.isAfter(inicio)) {
+          return { ...turn, estado: 1 }; // EN PROCESO
+        } else {
+          return { ...turn, estado: 0 }; // PENDIENTE
+        }
       });
-  
-      setTurnos(actualizados);
-    }, 1000);
-  
+    
+      setTurnosActualizados(actualizados);
+    };
+
+    actualizarEstados();
+    const interval = setInterval(actualizarEstados, 60000); // cada minuto
     return () => clearInterval(interval);
   }, [listaTurnos]);
-  
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    console.log(event)
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
   };
 
   const turnosFiltrados = {
-    enProceso: turnos.filter(turn => turn.estado === 'EN_PROCESO' || turn.estado === 'Pendiente'),
-    cerrados: turnos.filter(turn => turn.estado === 'CERRADO'),
-    cancelados: turnos.filter(turn => turn.estado === 'CANCELADO')
-  };
-
-  const obtenerEstiloTurno = (estado: string) => {
-    switch (estado) {
-      case 'EN_PROCESO':
-        return { backgroundColor: '#ffe082' };
-      case 'Pendiente':
-        return { backgroundColor: '#e3f2fd' };
-      default:
-        return {};
-    }
+    enProceso: turnosActualizados.filter(turn => {
+      const estado = normalizarEstado(turn.estado);
+      return estado === 'EN PROCESO' || estado === 'PENDIENTE';
+    }),
+    cerrados: turnosActualizados.filter(turn => normalizarEstado(turn.estado) === 'CERRADO'),
+    cancelados: turnosActualizados.filter(turn => normalizarEstado(turn.estado) === 'CANCELADO' || normalizarEstado(turn.estado) === 'DISPONIBLE' )
   };
 
   return (
@@ -84,49 +103,37 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
 
       {/* Pendientes / En Proceso */}
       <Box role="tabpanel" hidden={selectedTab !== 0}>
-        <List>
-          {turnosFiltrados.enProceso.map(turn => (
-            <ListItem
-              key={turn.id}
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                mb: 2,
-                ...obtenerEstiloTurno(turn.estado),
-              }}
-            >
-              <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
-              <ListItemText
-                primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
-                secondary={
-                  <>
-                    <p>Fecha Inicio: {turn.fechaHoraInicio}</p>
-                    <p>Duración: {turn.duracion}</p>
-                    <Timer
-                      fechaHoraInicio={turn.fechaHoraInicio}
-                      duracion={turn.duracion}
-                    />
-                  </>
-                }
-              />
-              {turn.estado === 'EN_PROCESO' && (
+        {turnosFiltrados.enProceso.length === 0 ? (
+          <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+            No hay turnos pendientes o en proceso.
+          </Typography>
+        ) : (
+          <List>
+            {turnosFiltrados.enProceso.map(turn => (
+              <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2, ...obtenerEstiloTurno(turn.estado) }}>
+                <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
+                <ListItemText
+                  primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
+                  secondary={
+                    <>
+                      <p>Fecha Inicio: {turn.fechaHoraInicio}</p>
+                      <p>Duración: {turn.duracion}</p>
+                      <Timer fechaHoraInicio={turn.fechaHoraInicio} duracion={turn.duracion} />
+                    </>
+                  }
+                />
                 <Typography variant="body2" color="primary" sx={{ ml: 2 }}>
-                  En Proceso
+                  {normalizarEstado(turn.estado)}
                 </Typography>
-              )}
-              {turn.estado === 'Pendiente' && (
-                <Typography variant="body2" color="primary" sx={{ ml: 2 }}>
-                  Pendiente
-                </Typography>
-              )}
-              {turn.estado === 'EN_PROCESO' ? null : (
-                <Button variant="outlined" color="error" onClick={() => handleOpenModal(turn.id)} sx={{ ml: 2 }}>
-                  Cancelar
-                </Button>
-              )}
-            </ListItem>
-          ))}
-        </List>
+                {normalizarEstado(turn.estado) !== 'EN PROCESO' && (
+                  <Button variant="outlined" color="error" onClick={() => handleOpenModal(turn.id)} sx={{ ml: 2 }}>
+                    Cancelar
+                  </Button>
+                )}
+              </ListItem>
+            ))}
+          </List>
+        )}
       </Box>
 
       {/* Cerrados */}
@@ -140,7 +147,7 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
                 secondary={`${turn.fechaHoraInicio} - ${turn.duracion}`}
               />
               <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
-                Cerrado
+                CERRADO
               </Typography>
             </ListItem>
           ))}
@@ -158,7 +165,7 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
                 secondary={`${turn.fechaHoraInicio} - ${turn.duracion}`}
               />
               <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
-                Cancelado
+                CANCELADO
               </Typography>
             </ListItem>
           ))}

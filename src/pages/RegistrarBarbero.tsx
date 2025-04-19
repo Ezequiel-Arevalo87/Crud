@@ -7,7 +7,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 
 import { Visibility, Add } from "@mui/icons-material";
-import { getUserRole } from "../services/authService";
+import { getDecodedToken } from "../services/authService";
 import apiBarberoService from "../services/apiBarberoService";
 import theme from "../components/theme/theme";
 import ActualizarBarbero from './ActualizarBarbero';
@@ -15,8 +15,10 @@ import ActualizarBarbero from './ActualizarBarbero';
 const RegistrarBarbero = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const rol: any = getUserRole();
+  const decoded = getDecodedToken();
+  const role = decoded?.role;
   const idBarberia = location.state?.id;
+  const barberiaSucursal = location.state?.datosBarberia;
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [listaBarberos, setListadosBarberos] = useState<any[]>([]);
   const [page, setPage] = useState(0);
@@ -24,38 +26,61 @@ const RegistrarBarbero = () => {
   const [actualizarDatosBarbero, setActualizarDatosBarbero] = useState('');
 
 
+  
+
+
   useEffect(() => {
-    if (!idBarberia) {
+    if (!idBarberia && !barberiaSucursal) {
       navigate("/barberias");
     } else {
       obtenerBarberosPorBarberias();
     }
-  }, [idBarberia, navigate]);
+  }, [idBarberia, barberiaSucursal, navigate]);
 
   const obtenerBarberosPorBarberias = async () => {
-    try {
-      const data = await apiBarberoService.getBarberoPorBarberia(idBarberia);
-      setListadosBarberos(data);
-    } catch (error) {
-      console.error("Error al obtener barberos por id", error);
+    debugger
+    let barberiaId;
+    if (barberiaSucursal) {
+      barberiaId = barberiaSucursal.id
+      try {
+        const data = await apiBarberoService.getBarberoPorSucursal(barberiaId);
+        setListadosBarberos(data);
+      } catch (error) {
+        console.error("Error al obtener barberos por id sucursal", error);
+      }
+    } else {
+      barberiaId = idBarberia
+      try {
+        const data = await apiBarberoService.getBarberoPorBarberia(barberiaId);
+        const newData = data.filter((bSS:any) => bSS.sucursalId === null)
+        setListadosBarberos(newData);
+      } catch (error) {
+        console.error("Error al obtener barberos por id", error);
+      }
     }
+
   };
-
-
 
   const handleAgregarServicios = (data: any) => {
     navigate("/servicios-barbero", { state: { data } });
   };
 
   const handActualizar = (data: any) => {
-    
+
     setActualizarDatosBarbero(data.id)
     setListadosBarberos([data]);
   };
 
   const abrirFormularioCrearBarbero = () => {
-    navigate("/crear-barbero", { state: { idBarberia } });
+    
+    
+    if (barberiaSucursal) {
+      navigate("/crear-barbero", { state: { barberiaSucursal: barberiaSucursal } });
+    } else {
+      navigate("/crear-barbero", { state: {idBarberia: idBarberia }});
+    }
   };
+
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -66,7 +91,7 @@ const RegistrarBarbero = () => {
     setPage(0);
   };
 
-  return idBarberia ? (
+  return idBarberia || barberiaSucursal ? (
     <Container maxWidth="xl" sx={{ p: 3 }}>
       <Typography
         variant={isMobile ? "h5" : "h4"}
@@ -77,7 +102,7 @@ const RegistrarBarbero = () => {
         Lista de Barberos Admin
       </Typography>
 
-      {(rol?.role === "Super_Admin" || rol?.role === "Admin") && (
+      {(role === "Super_Admin" || role === "Admin") && (
         <Box display="flex" justifyContent="flex-end" mb={2}>
           <Button
             variant="contained"
@@ -137,7 +162,7 @@ const RegistrarBarbero = () => {
                   <TableCell>{user.telefono}</TableCell>
                   <TableCell align="center">
                     <Stack direction="row" spacing={1} justifyContent="center">
-                      {(rol?.role === "Super_Admin" || rol?.role === "Admin") && (
+                      {(role === "Super_Admin" || role === "Admin") && (
                         <>
                           <Tooltip title="Agregar Servicios del Barbero">
                             <IconButton color="info" onClick={() => handleAgregarServicios(user.id)}>
@@ -173,9 +198,9 @@ const RegistrarBarbero = () => {
       {actualizarDatosBarbero !== '' && (
         <ActualizarBarbero
           listaBarberos={listaBarberos}
-          obtenerBarberosPorBarberias = {obtenerBarberosPorBarberias}
-          setActualizarDatosBarbero  = {setActualizarDatosBarbero}
-        
+          obtenerBarberosPorBarberias={obtenerBarberosPorBarberias}
+          setActualizarDatosBarbero={setActualizarDatosBarbero}
+
         />
       )}
     </Container>

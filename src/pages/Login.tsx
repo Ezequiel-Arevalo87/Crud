@@ -8,6 +8,10 @@ import SwalAlert from "../components/alerts/SwalAlert";
 import RegistrarCliente from "./RegistrarCliente";
 import { useState } from "react";
 import { useAuth } from "../components/context/AuthContext";
+import { getUserId, getUserRole } from "../services/authService";
+import { obtenerToken } from "../services/firebaseMessagingService";
+import { registrarTokenNotificaciones } from "../services/registrarToken";
+
 
 const Login = () => {
   const { control, handleSubmit } = useForm();
@@ -18,11 +22,27 @@ const Login = () => {
   const handleLogin = async (e: any) => {
     try {
       await login(e.correo, e.clave);
-      navigate("/"); // Redirige al home después de iniciar sesión
+  
+      // ✅ Obtenemos los datos del token JWT
+      const usuarioId = getUserId();      // ej. 1
+      const rol = getUserRole();          // ej. "Barbero"
+  
+      // ✅ Solo si es barbero, obtenemos y registramos el token de Firebase
+      if (rol?.toLowerCase() === "barbero" && usuarioId) {
+        const tokenFirebase = await obtenerToken();
+        if (tokenFirebase) {
+          await registrarTokenNotificaciones(tokenFirebase, usuarioId);
+          console.log("🎯 Token Firebase registrado para barbero", usuarioId);
+        }
+      }
+  
+      // ✅ Navegar al home
+      navigate("/");
     } catch (error: any) {
       SwalAlert.errorInicioSesion("Error Login", "Correo o contraseña incorrectos");
     }
   };
+  
  
 
   return (

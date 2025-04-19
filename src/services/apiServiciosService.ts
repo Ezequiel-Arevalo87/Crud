@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken} from "./authService";
 
 const apiServicios = axios.create({
-  baseURL: "https://localhost:7238/api/", // Reemplaza con tu URL real
+  baseURL: "http://localhost:7238/api/", // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },
@@ -36,10 +36,19 @@ const apiServiciosService = {
       throw error;
     }
   },
+   async getMisServicios() { // <-- Asegurar que el ID es un número
+    try {
+      const response = await apiServicios.get(`service/mis-servicios`); // <-- Corrección en la URL
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener servicios del barbero", error);
+      throw error;
+    }
+  },
   
    async getServiciosPorBarbero(id:number) { // <-- Asegurar que el ID es un número
     try {
-      const response = await apiServicios.get(`service/servicio/barbero/${id}`); // <-- Corrección en la URL
+      const response = await apiServicios.get(`/Service/barbero/${id}`); // <-- Corrección en la URL
       return response.data;
     } catch (error) {
       console.error("Error al obtener servicios del barbero", error);

@@ -47,7 +47,7 @@ const FormServicio: React.FC = () => {
       setValue('tiempo', idServicio.tiempo )
       setValue('observacion', idServicio.observacion )
       setValue('observacion', idServicio.observacion )
-      setValue('barberoId', idServicio.barberoId )
+      setValue('barberoId', idBarbero.barberoId )
       setNombreBoton("Actualizar")
       setTitulo("Actualizar Servicio")
     }else{

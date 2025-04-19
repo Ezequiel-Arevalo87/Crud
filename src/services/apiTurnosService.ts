@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken} from "./authService";
 
 const apiTurno = axios.create({
-  baseURL: "https://localhost:7238/api/", // Reemplaza con tu URL real
+  baseURL: "http://localhost:7238/api/", // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },
@@ -27,10 +27,6 @@ apiTurno.interceptors.request.use(
 
 const apiTurnosService = {
 
-
-
-
- // Crear barbero
  async getTurnos(id: number) {
     try {
         const response = await apiTurno.get(`Turno?barberoId=${id}`); // <-- Corrección en la URL ?barberoId=1
@@ -39,8 +35,20 @@ const apiTurnosService = {
         console.error("Error al obtener barberos de la barbería", error);
         throw error;
       }
+  },
+
+ async cancelarTurno(data: any) {
+    try {
+        const response = await apiTurno.put(`Turno/cancelar`, data); 
+        return response.data;
+      } catch (error) {
+        console.error("Error al cancelar turno", error);
+        throw error;
+      }
   }
 
 };
+
+
 
 export default apiTurnosService;
