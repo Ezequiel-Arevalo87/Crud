@@ -55,6 +55,8 @@ const BarberPage: React.FC = () => {
     }
   }, []);
 
+  // prueba
+
   const mapEstadoTextoANumero = (estado: string) => {
     switch (estado.toLowerCase()) {
       case 'pendiente': return 0;
