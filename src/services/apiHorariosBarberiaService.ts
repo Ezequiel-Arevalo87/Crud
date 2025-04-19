@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken} from "./authService";
 
 const apiHorarioBarberia = axios.create({
-  baseURL: "https://localhost:7238/api", // Reemplaza con tu URL real
+  baseURL: "http://localhost:7238/api", // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },

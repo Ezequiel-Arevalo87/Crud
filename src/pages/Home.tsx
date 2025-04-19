@@ -5,26 +5,27 @@ import apiService from "../services/api";
 import { useLocation } from "react-router-dom";
 import LoadingScissors from "../components/loading/LoadingScissors";
 import { getUserRole } from "../services/authService";
+import apiBarberiaService from "../services/apiBarberiaService";
 
 const Home = () => {
-   const rol:any = getUserRole();
-  const [token , setToken] = useState( sessionStorage.getItem("token"))
+  const rol: any = getUserRole();
+  const [token, setToken] = useState(sessionStorage.getItem("token"))
   const [barbershops, setBarbershops] = useState<any>([]);
   const location = useLocation();
   const [loading, setLoading] = useState(false)
   const mensaje = location.state?.mensaje || "No hay mensaje";
 
   useEffect(() => {
-    
-    if(rol?.role === "Admin"){
+
+    if (rol?.role === "Admin") {
       obtenerBarberiasPorId()
-    }else{
+    } else {
       obtenerAllBarberias();
     }
-    
+
   }, [token]);
   useEffect(() => {
-    if(mensaje == 'OK'){
+    if (mensaje == 'OK') {
       setToken(null)
     }
   }, [mensaje == 'OK']);
@@ -34,7 +35,7 @@ const Home = () => {
   const obtenerAllBarberias = async () => {
     setLoading(true)
     try {
-      const data = await apiService.getUsuarios();
+      const data = await apiBarberiaService.getBarberiasPublicas();
       setBarbershops(data);
       setLoading(false)
     } catch (error) {
@@ -56,9 +57,9 @@ const Home = () => {
     }
   };
 
-  if(loading){
-    return <LoadingScissors/>
-}
+  if (loading) {
+    return <LoadingScissors />
+  }
 
 
   return (
@@ -72,38 +73,71 @@ const Home = () => {
       {/* Galería de Barberías */}
       <Grid container spacing={3} justifyContent="center">
         {barbershops.map((barber: any, index: any) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid item xs={12} key={index}>
             <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
               <CardMedia
                 component="img"
-                height="200"
+                height="250"
                 image={barber?.fotoBarberia || "/default-barber.jpg"}
                 alt={barber?.nombre}
                 sx={{ objectFit: "cover" }}
               />
               <CardContent sx={{ textAlign: "center", padding: 2 }}>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant="h5" fontWeight="bold">
                   {barber.nombre}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {barber.descripcion}
+                  {barber.correo}
                 </Typography>
-                <Typography variant="h6" color="text.secondary">
-                  {barber.direccion}
-                </Typography>
-                {
-                  token && 
+                <Typography variant="body2">{barber.direccion}</Typography>
+                <Typography variant="body2">{barber.telefono}</Typography>
 
-                  <Button>Ir a la sala</Button>
-                }
-               
+                {token && (
+                  <Button variant="contained" sx={{ mt: 2 }}>
+                    Ir a la sala
+                  </Button>
+                )}
               </CardContent>
             </Card>
+
+            {/* Sucursales de la barbería */}
+            {barber.sucursales?.length > 0 && (
+              <Box mt={2} ml={4}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                  Sucursales:
+                </Typography>
+                <Grid container spacing={2}>
+                  {barber.sucursales.map((sucursal: any, idx: number) => (
+                    <Grid item xs={12} sm={6} md={4} key={idx}>
+                      <Card sx={{ borderRadius: 2, backgroundColor: "#f5f5f5" }}>
+                        <CardMedia
+                          component="img"
+                          height="150"
+                          image={sucursal.fotoSucursal || "/default-branch.jpg"}
+                          alt={sucursal.nombre}
+                          sx={{ objectFit: "cover" }}
+                        />
+                        <CardContent>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            {sucursal.nombre}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {sucursal.direccion}
+                          </Typography>
+                          <Typography variant="body2">{sucursal.telefono}</Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
           </Grid>
         ))}
       </Grid>
 
-      <NuestrosClientes reviews = {barbershops} />
+
+      <NuestrosClientes reviews={barbershops} />
     </Container>
   );
 };

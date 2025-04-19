@@ -20,6 +20,7 @@ interface FormData {
     barberiaId: number;
     fotoBarbero: string;
     estado: number;
+    sucursalId? : number;
 }
 
 const CrearBarberos = () => {
@@ -27,9 +28,14 @@ const CrearBarberos = () => {
     const navigate = useNavigate();
     const [tipoDocumentos, setTipoDocumentos] = useState([]);
     const [showPassword, setShowPassword] = useState(false);
-    const idBarberia = location.state?.idBarberia;
+  
+    const barberiaSucursal = location?.state?.barberiaSucursal;
+    const barberiaId =  location?.state?.idBarberia
 
-    const { control, handleSubmit } = useForm<FormData>({
+    console.log('ver', barberiaId )
+    console.log('ver2', barberiaSucursal )
+
+    const { control, handleSubmit, setValue } = useForm<FormData>({
         defaultValues: {
             email: "",
             password: "",
@@ -39,16 +45,22 @@ const CrearBarberos = () => {
             direccion: "",
             telefono: "",
             roleId: 2,
-            barberiaId: idBarberia,
+            barberiaId: barberiaId ?? 0,
+            sucursalId: barberiaSucursal?.id ?? undefined,
             fotoBarbero: "",
             estado: 1,
         }
-    });
+    });  
+
 
     useEffect(() => {
-        if (!idBarberia) {
+        
+        if (!barberiaId && !barberiaSucursal) {
             navigate("/barberias");
         } else {
+            if(barberiaSucursal){
+                setValue('barberiaId',barberiaSucursal.barberiaId )
+            }
             obtenerTiposDocumentos();
         }
     }, []);
@@ -63,15 +75,22 @@ const CrearBarberos = () => {
     };
 
     const onSubmit = async (data: FormData) => {
+        
         try {
-            await apiBarberoService.postBarbero(data);
-            alert("Barbero guardado con éxito");
-            navigate("/registrar-barbero", { state: { id: idBarberia } });
+          await apiBarberoService.postBarbero(data);
+          alert("Barbero guardado con éxito");
+      
+          if (barberiaSucursal) {
+            navigate("/registrar-barbero", { state: { datosBarberia: barberiaSucursal } });
+          } else {
+            navigate("/registrar-barbero", { state: { id: barberiaId } });
+          }
+      
         } catch (error) {
-            console.error("Error al guardar barbero", error);
+          console.error("Error al guardar barbero", error);
         }
-    };
-
+      };
+      
     return (
         <Box sx={{ width: "100%", maxWidth: 400, margin: "auto", mt: 5 }}>
             <Typography variant="h5" align="center" gutterBottom>

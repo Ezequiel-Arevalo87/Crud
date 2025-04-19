@@ -2,17 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import {
   Card, CardContent, Button, Typography, Badge, List, ListItem, ListItemText,
-  IconButton, Modal, TextField, Box, Avatar, Collapse,
-  Divider
+  IconButton, Modal, TextField, Box, Avatar, Collapse, Divider
 } from '@mui/material';
 import { FaBell, FaClock, FaMinus, FaPlus } from 'react-icons/fa';
 import dayjs from 'dayjs';
 import apiServiciosService from '../../services/apiServiciosService';
-import { getUserRole } from '../../services/authService';
+import { getDecodedToken } from '../../services/authService';
 import { formatCurrency } from '../maskaras/CurrencyFormatter';
 import apiTurnosService from '../../services/apiTurnosService';
 import TurnosProgramadosEstados from './TurnosProgramadosEstados';
 import useNotification from '../useNotification';
+import {
+  agregarTurnoAlHistorial,
+} from '../../components/helper/turnosStorage';
 
 const BarberPage: React.FC = () => {
   const [time, setTime] = useState(dayjs().format('HH:mm:ss'));
@@ -25,13 +27,10 @@ const BarberPage: React.FC = () => {
   const [listaTurnos, setListaTurnos] = useState<any[]>([]);
   const [turnosActivos, setTurnosActivos] = useState<any[]>([]);
   const [campanaActiva, setCampanaActiva] = useState(false);
-
-  const role: any = getUserRole();
+  const decoded = getDecodedToken();
+  const nameid = decoded?.barberoId;
   const notification = useNotification();
 
-
-
-  // Reloj en tiempo real
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(dayjs().format('HH:mm:ss'));
@@ -40,72 +39,69 @@ const BarberPage: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Servicios y turnos iniciales
   useEffect(() => {
     obtenerServiciosBarbero();
-    obtenerTurnosBarbero();
   }, []);
-
-  // Recalcular estados cada segundo
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const actualizados = listaTurnos.map((turno) => {
-        const fechaInicio = new Date(turno.fechaHoraInicio);
-        const [h, m, s] = turno.duracion.split(":").map(Number);
-        const duracionMs = (h * 3600 + m * 60 + s) * 1000;
-        const fechaFin = new Date(fechaInicio.getTime() + duracionMs);
-
-        let estado = turno.estado;
-        if (estado !== 'CERRADO') {
-          if (now >= fechaInicio && now < fechaFin) estado = 'EN_PROCESO';
-          else if (now >= fechaFin) estado = 'CERRADO';
-          else estado = 'Pendiente';
-        }
-
-        return { ...turno, estado };
-      });
-
-      setListaTurnos(actualizados);
-      const visibles = actualizados.filter(t => t.estado === 'Pendiente' || t.estado === 'EN_PROCESO');
-      setTurnosActivos(visibles);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [listaTurnos]);
-
 
   useEffect(() => {
     if (notification?.data) {
       agregarTurnoDesdeNotificacion(notification.data);
     }
-  }, [notification]);
+  }, [notification?.data]);
 
-  const agregarTurnoDesdeNotificacion = (nuevoTurno: any) => {
-    const turnoFormateado = {
-      id: Number(nuevoTurno.TurnoId),
-      clienteNombre: nuevoTurno.ClienteNombre,
-      clienteApellido: nuevoTurno.ClienteApellido,
-      servicioNombre: nuevoTurno.ServicioNombre,
-      fechaHoraInicio: nuevoTurno.FechaHoraInicio,
-      duracion: nuevoTurno.Duracion,
-      estado: nuevoTurno.Estado,
-    };
+  useEffect(() => {
+    if (!listaTurnos.length) {
+      obtenerTurnosBarbero();
+    }
+  }, []);
 
-    const yaExiste = listaTurnos.some(t => t.id === turnoFormateado.id);
-    if (!yaExiste) {
-      const nuevos = [...listaTurnos, turnoFormateado];
-      setListaTurnos(nuevos);
-      localStorage.setItem("turnos_extra", JSON.stringify(nuevos));
-      setCampanaActiva(true);
-      setTimeout(() => setCampanaActiva(false), 1500);
+  const mapEstadoTextoANumero = (estado: string) => {
+    switch (estado.toLowerCase()) {
+      case 'pendiente': return 0;
+      case 'en_proceso': return 1;
+      case 'cerrado': return 2;
+      case 'cancelado': return 3;
+      case 'disponible': return 4;
+      default: return estado;
     }
   };
 
+  const agregarTurnoDesdeNotificacion = (turnoNotificado: any) => {
+    const id = Number(turnoNotificado.TurnoId);
+    const nuevoTurno = {
+      id,
+      clienteNombre: turnoNotificado.ClienteNombre,
+      clienteApellido: turnoNotificado.ClienteApellido,
+      servicioNombre: turnoNotificado.ServicioNombre,
+      fechaHoraInicio: turnoNotificado.FechaHoraInicio,
+      duracion: turnoNotificado.Duracion,
+      estado: typeof turnoNotificado.Estado === 'string'
+        ? mapEstadoTextoANumero(turnoNotificado.Estado)
+        : turnoNotificado.Estado,
+      barberoId: Number(turnoNotificado.BarberoId)
+    };
+
+    if (nuevoTurno.barberoId !== Number(decoded?.barberoId)) return;
+
+    setListaTurnos(prev => {
+      const existe = prev.find(t => t.id === id);
+      if (existe) {
+        return prev.map(t => t.id === id ? { ...t, estado: nuevoTurno.estado } : t);
+      } else {
+        agregarTurnoAlHistorial(id);
+        setCampanaActiva(true);
+        setTimeout(() => setCampanaActiva(false), 1500);
+        return [...prev, nuevoTurno];
+      }
+    });
+  };
+
   const obtenerTurnosBarbero = async () => {
+    
     try {
-      const response = await apiTurnosService.getTurnos(Number(role.nameid));
-      const turnosExtra = JSON.parse(localStorage.getItem("turnos_extra") || "[]");
+      const response = await apiTurnosService.getTurnos(Number(nameid));
+      const turnosExtra = JSON.parse(localStorage.getItem("turnos_extra") || "[]")
+        .filter((t: any) => t.barberoId === Number(nameid));
       const idsExistentes = new Set(response.map((t: any) => t.id));
       const turnosCombinados = [
         ...response,
@@ -127,8 +123,8 @@ const BarberPage: React.FC = () => {
 
   const obtenerServiciosBarbero = async () => {
     try {
-      const data = await apiServiciosService.getServicios();
-      setFiltroServicioPorBarbero(data.filter((b: any) => b.barberoId === Number(role.nameid) && b.estado === 1));
+      const data = await apiServiciosService.getMisServicios();
+      setFiltroServicioPorBarbero(data);
     } catch {
       console.log('Error al obtener los servicios');
     }
@@ -139,8 +135,19 @@ const BarberPage: React.FC = () => {
     setOpenModal(true);
   };
 
-  const handleCancelTurn = () => {
+  const handleCancelTurn = async () => {
     if (selectedTurnId !== null) {
+      try {
+        await apiTurnosService.cancelarTurno({
+          turnoId: selectedTurnId,
+          motivo: cancelReason,
+          rol: "Barbero",
+          restaurar: true
+        });
+        await obtenerTurnosBarbero();
+      } catch (error) {
+        console.error("Error cancelando turno", error);
+      }
       setCancelReason("");
       setOpenModal(false);
     }
@@ -204,13 +211,10 @@ const BarberPage: React.FC = () => {
                     }
                   />
                 </ListItem>
-
-                {/* Solo agregamos el Divider si no es el último elemento */}
                 {index < filtroServicioPorBarbero.length - 1 && <Divider variant="inset" component="li" />}
               </React.Fragment>
             ))}
           </List>
-
         </Collapse>
       </Card>
 

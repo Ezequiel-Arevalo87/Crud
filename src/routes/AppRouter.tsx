@@ -12,6 +12,7 @@ import CrearServicioBarbero from "../pages/CrearServicioBarbero";
 import HorariosBarberia from "../pages/HorariosBarberia";
 import NavigationBreadcrumbs from "../components/NavigationBreadcrumbs";
 import BarberPage from "../components/PagesBarbero/BarberPage";
+import CrearSucursal from "../pages/CrearSucursal";
 
 const AppRouter = () => {
   return (
@@ -34,6 +35,7 @@ const AppRouter = () => {
         <Route element={<ProtectedRoute allowedRoles={["Super_Admin", "Admin"]} />}>
           <Route path="/registrar-barbero" element={<RegistrarBarbero />} />
           <Route path="/crear-barberia" element={<CrearBarberia />} />
+          <Route path="/crear-barberia-sucursal" element={<CrearSucursal />} />
           <Route path="/crear-barbero" element={<CrearBarberos />} />
         </Route>
 

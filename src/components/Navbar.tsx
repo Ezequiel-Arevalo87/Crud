@@ -13,7 +13,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { getUserRole } from "../services/authService";
+import { getDecodedToken, getUserRole } from "../services/authService";
 import SwalAlert from "./alerts/SwalAlert";
 
 const Navbar = () => {
@@ -25,13 +25,16 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const roles: any = getUserRole();
+  
 
   useEffect(() => {
     setToken(sessionStorage.getItem("token"));
-    const role: any = getUserRole();
-    setUserRole(role?.role);
+    const role = getUserRole();
+    setUserRole(role);
   }, [location.pathname]);
+  
+  const decoded = getDecodedToken();
+  const email = decoded?.email;
 
   const handleLogout = async () => {
     const result = await SwalAlert.confirCerrarSesion(
@@ -70,9 +73,9 @@ const Navbar = () => {
     <AppBar position="static" sx={{ bgcolor: "#13487a" }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
        {isMobile ? <Typography variant="h6" component="div">
-          {`Hola, ${roles?.email}`}
+          {`Hola, ${email}`}
         </Typography>: <Typography variant="h6" component="div">
-          {userRole ? `Hola, ${roles?.email} (${userRole})` : "BarberApp"}
+        {userRole ? `Hola, ${email} (${userRole})` : "BarberApp"}
         </Typography>}
 
         {isMobile ? (

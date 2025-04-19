@@ -27,15 +27,15 @@ api.interceptors.request.use(
 // Métodos API con autenticación
 const apiService = {
   // Obtener lista de usuarios
-  async getUsuarios() {
-    try {
-      const response = await api.get("/barberias");
-      return response.data;
-    } catch (error) {
-      console.error("Error al obtener barberias", error);
-      throw error;
-    }
-  },
+  // async getUsuarios() {
+  //   try {
+  //     const response = await api.get("/barberias");
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error("Error al obtener barberias", error);
+  //     throw error;
+  //   }
+  // },
 
   // Obtener un usuario por ID
   async getUsuarioById(id: any) {

@@ -10,7 +10,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   const userRole:any = getUserRole();
 
   // Verifica si el usuario tiene un token y su rol está en los permitidos
-  const isAuthorized = token && allowedRoles.includes(userRole?.role);
+  const isAuthorized = token && allowedRoles.includes(userRole);
+
 
   return isAuthorized ? <Outlet /> : <Navigate to="/" replace />;
 };
