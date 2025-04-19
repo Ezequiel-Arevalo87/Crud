@@ -32,6 +32,7 @@ const BarberPage: React.FC = () => {
   const notification = useNotification();
 
   useEffect(() => {
+    setTurnosActivos([])
     const timer = setInterval(() => {
       setTime(dayjs().format('HH:mm:ss'));
       setDate(dayjs().format('YYYY-MM-DD'));
