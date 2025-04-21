@@ -95,7 +95,8 @@ const Barberias = () => {
     formularioBarberia.reset();
   };
 
-  const handleChangePage = (event: any, newPage: number) => {
+  const handleChangePage = (_event: any, newPage: number) => {
+  
     setPage(newPage);
   };
 
