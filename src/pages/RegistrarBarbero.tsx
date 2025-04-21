@@ -82,7 +82,7 @@ const RegistrarBarbero = () => {
   };
 
 
-  const handleChangePage = (event: any, newPage: number) => {
+  const handleChangePage = (_event: any, newPage: number) => {
     setPage(newPage);
   };
 
