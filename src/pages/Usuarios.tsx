@@ -40,18 +40,18 @@ const Usuarios = () => {
 
 
     useEffect(() => {
-        fetchUsuarios();
+        // fetchUsuarios();
        console.log({actualizarDatosUsuarios}) 
     }, []);
 
-    const fetchUsuarios = async () => {
-        try {
-            const data = await apiService.getUsuarios();
-            setUsuarios(data);
-        } catch (error) {
-            console.error("Error al cargar usuarios", error);
-        }
-    };
+    // const fetchUsuarios = async () => {
+    //     try {
+    //         const data = await apiService.getUsuarios();
+    //         setUsuarios(data);
+    //     } catch (error) {
+    //         console.error("Error al cargar usuarios", error);
+    //     }
+    // };
 
     const handleEliminarUsuario = async (id: string) => {
         const result = await SwalAlert.confirmDelete("¿Estás seguro?", "Esta acción no se puede deshacer");
