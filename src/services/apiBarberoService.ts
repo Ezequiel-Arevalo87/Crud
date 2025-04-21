@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken} from "./authService";
 
 const apiBarbero = axios.create({
-  baseURL: "http://localhost:7238/api", // Reemplaza con tu URL real
+  baseURL: "https://backend-barberias-1.onrender.com/api", // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },
