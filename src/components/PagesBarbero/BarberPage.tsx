@@ -1,4 +1,3 @@
-// --- BarberPage.tsx ---
 import React, { useState, useEffect } from 'react';
 import {
   Card, CardContent, Button, Typography, Badge, List, ListItem, ListItemText,
@@ -6,6 +5,11 @@ import {
 } from '@mui/material';
 import { FaBell, FaClock, FaMinus, FaPlus } from 'react-icons/fa';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 import apiServiciosService from '../../services/apiServiciosService';
 import { getDecodedToken } from '../../services/authService';
 import { formatCurrency } from '../maskaras/CurrencyFormatter';
@@ -56,8 +60,6 @@ const BarberPage: React.FC = () => {
     }
   }, []);
 
-  // prueba
-
   const mapEstadoTextoANumero = (estado: string) => {
     switch (estado.toLowerCase()) {
       case 'pendiente': return 0;
@@ -76,7 +78,7 @@ const BarberPage: React.FC = () => {
       clienteNombre: turnoNotificado.ClienteNombre,
       clienteApellido: turnoNotificado.ClienteApellido,
       servicioNombre: turnoNotificado.ServicioNombre,
-      fechaHoraInicio: turnoNotificado.FechaHoraInicio,
+      fechaHoraInicio: dayjs.utc(turnoNotificado.FechaHoraInicio).local().format(),
       duracion: turnoNotificado.Duracion,
       estado: typeof turnoNotificado.Estado === 'string'
         ? mapEstadoTextoANumero(turnoNotificado.Estado)
@@ -100,14 +102,16 @@ const BarberPage: React.FC = () => {
   };
 
   const obtenerTurnosBarbero = async () => {
-    
     try {
       const response = await apiTurnosService.getTurnos(Number(nameid));
       const turnosExtra = JSON.parse(localStorage.getItem("turnos_extra") || "[]")
         .filter((t: any) => t.barberoId === Number(nameid));
       const idsExistentes = new Set(response.map((t: any) => t.id));
       const turnosCombinados = [
-        ...response,
+        ...response.map((t:any) => ({
+          ...t,
+          fechaHoraInicio: dayjs.utc(t.fechaHoraInicio).local().format()
+        })),
         ...turnosExtra.filter((t: any) => !idsExistentes.has(t.id))
       ];
       setListaTurnos(turnosCombinados);
@@ -157,7 +161,6 @@ const BarberPage: React.FC = () => {
   };
 
   const toggleServiceCollapse = () => setIsServiceCollapsed(!isServiceCollapsed);
-
   return (
     <Box sx={{ backgroundColor: '#f7f7f7', minHeight: '100vh', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Card sx={{ p: 3, boxShadow: 3, maxWidth: '900px', width: '90%', mb: 4 }}>
