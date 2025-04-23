@@ -5,6 +5,7 @@ import {
 import Timer from './Timer';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import groupBy from 'lodash/groupBy';
 dayjs.extend(duration);
 
 interface Turno {
@@ -46,37 +47,35 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
   const [turnosActualizados, setTurnosActualizados] = useState<Turno[]>([]);
 
   useEffect(() => {
-    
     const actualizarEstados = () => {
       const ahora = dayjs();
-    
+
       const actualizados = listaTurnos.map(turn => {
         const estadoOriginal = Number(turn.estado);
-    
-        // ✅ Respetamos los estados ya definidos desde el backend
+
         if (estadoOriginal === 2 || estadoOriginal === 4 || estadoOriginal === 3) {
-          return turn; // Ya está cerrado o cancelado
+          return turn;
         }
-    
+
         const inicio = dayjs(turn.fechaHoraInicio);
         const [h, m, s] = turn.duracion.split(':').map(Number);
         const minutos = h * 60 + m + Math.floor(s / 60);
         const fin = inicio.add(minutos, 'minute');
-    
+
         if (ahora.isAfter(fin)) {
-          return { ...turn, estado: 2 }; // CERRADO (desde frontend solo si no venía cerrado)
+          return { ...turn, estado: 2 };
         } else if (ahora.isAfter(inicio)) {
-          return { ...turn, estado: 1 }; // EN PROCESO
+          return { ...turn, estado: 1 };
         } else {
-          return { ...turn, estado: 0 }; // PENDIENTE
+          return { ...turn, estado: 0 };
         }
       });
-    
+
       setTurnosActualizados(actualizados);
     };
 
     actualizarEstados();
-    const interval = setInterval(actualizarEstados, 60000); // cada minuto
+    const interval = setInterval(actualizarEstados, 60000);
     return () => clearInterval(interval);
   }, [listaTurnos]);
 
@@ -90,8 +89,12 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
       return estado === 'EN PROCESO' || estado === 'PENDIENTE';
     }),
     cerrados: turnosActualizados.filter(turn => normalizarEstado(turn.estado) === 'CERRADO'),
-    cancelados: turnosActualizados.filter(turn => normalizarEstado(turn.estado) === 'CANCELADO' || normalizarEstado(turn.estado) === 'DISPONIBLE' )
+    cancelados: turnosActualizados.filter(turn => normalizarEstado(turn.estado) === 'CANCELADO' || normalizarEstado(turn.estado) === 'DISPONIBLE')
   };
+
+  const turnosAgrupadosPorFecha = groupBy(turnosFiltrados.enProceso, turno =>
+    dayjs(turno.fechaHoraInicio).format('YYYY-MM-DD')
+  );
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -103,13 +106,12 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
 
       {/* Pendientes / En Proceso */}
       <Box role="tabpanel" hidden={selectedTab !== 0}>
-        {turnosFiltrados.enProceso.length === 0 ? (
-          <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-            No hay turnos pendientes o en proceso.
-          </Typography>
-        ) : (
-          <List>
-            {turnosFiltrados.enProceso.map(turn => (
+        {Object.entries(turnosAgrupadosPorFecha).map(([fecha, turnos]) => (
+          <Box key={fecha}>
+            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+              {dayjs(fecha).format('dddd, DD [de] MMMM YYYY')}
+            </Typography>
+            {turnos.map(turn => (
               <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2, ...obtenerEstiloTurno(turn.estado) }}>
                 <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
                 <ListItemText
@@ -132,8 +134,8 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
                 )}
               </ListItem>
             ))}
-          </List>
-        )}
+          </Box>
+        ))}
       </Box>
 
       {/* Cerrados */}
