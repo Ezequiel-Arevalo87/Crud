@@ -16,16 +16,25 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const messaging = getMessaging(firebaseApp);
 
+// 📌 Solicitar permiso al navegador
+export const pedirPermisoNotificaciones = async () => {
+  const permiso = await Notification.requestPermission();
+  if (permiso === 'granted') {
+    console.log("✅ Permiso de notificación concedido");
+  } else {
+    console.warn("⚠️ Permiso de notificación denegado");
+  }
+};
+
 // 📌 Obtener Token para notificaciones
 export const obtenerToken = async (): Promise<string | null> => {
   try {
     const currentToken = await getToken(messaging, {
-      vapidKey:
-        "BHUIX2XhHeW0zEvr-7p-VjnWscgyrEnXA5i_mHSxZiY3wPH14xyQhH1sj3IBufOOD36G8qdrGgpNVLDmExRtTBY",
+      vapidKey: "BHUIX2XhHeW0zEvr-7p-VjnWscgyrEnXA5i_mHSxZiY3wPH14xyQhH1sj3IBufOOD36G8qdrGgpNVLDmExRtTBY",
     });
 
     if (currentToken) {
-      console.log("✅ Token obtenido:", currentToken);
+      console.log("✅ Token FCM obtenido:", currentToken);
       return currentToken;
     } else {
       console.warn("⚠️ No se pudo obtener el token.");
@@ -37,13 +46,24 @@ export const obtenerToken = async (): Promise<string | null> => {
   }
 };
 
-// 📩 Escuchar Notificaciones en Primer Plano
+// 📩 Escuchar notificaciones en primer plano
 export const escucharNotificaciones = () => {
   onMessage(messaging, (payload) => {
-    console.log("📩 Notificación en primer plano:", payload);
+    console.log("📩 Notificación recibida en primer plano:", payload);
 
-    if (payload.notification) {
-      alert(`📢 ${payload.notification.title}: ${payload.notification.body}`);
+    if (Notification.permission === "granted" && payload.notification) {
+      // Reproduce sonido si existe
+      const audio = new Audio("/sonido-notificacion.mp3"); // coloca este archivo en public/
+      audio.play().catch((e) => console.warn("🔇 Error al reproducir sonido", e));
+
+      // Muestra la notificación visual
+      new Notification(payload.notification.title ?? "Barbería", {
+        body: payload.notification.body ?? "Tienes una nueva notificación",
+        icon: "/icono-barberia.png", // coloca esta imagen en /public
+        tag: "turno-barberia",
+        requireInteraction: true,
+        silent: false,
+      });
     }
   });
 };
