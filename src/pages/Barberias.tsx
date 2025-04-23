@@ -45,7 +45,7 @@ const Barberias = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    debugger
+    
     if (role === "Admin" || role === "Barbero") {
       fetchBarberiasById();
     } else {
