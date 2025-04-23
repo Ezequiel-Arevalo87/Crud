@@ -46,7 +46,7 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
   const [turnosActualizados, setTurnosActualizados] = useState<Turno[]>([]);
 
   useEffect(() => {
-    debugger
+    
     const actualizarEstados = () => {
       const ahora = dayjs();
     

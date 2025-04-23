@@ -16,9 +16,7 @@ import { formatCurrency } from '../maskaras/CurrencyFormatter';
 import apiTurnosService from '../../services/apiTurnosService';
 import TurnosProgramadosEstados from './TurnosProgramadosEstados';
 import useNotification from '../useNotification';
-import {
-  agregarTurnoAlHistorial,
-} from '../../components/helper/turnosStorage';
+import { agregarTurnoAlHistorial } from '../../components/helper/turnosStorage';
 
 const BarberPage: React.FC = () => {
   const [time, setTime] = useState(dayjs().format('HH:mm:ss'));
@@ -36,7 +34,7 @@ const BarberPage: React.FC = () => {
   const notification = useNotification();
 
   useEffect(() => {
-    setTurnosActivos([])
+    setTurnosActivos([]);
     const timer = setInterval(() => {
       setTime(dayjs().format('HH:mm:ss'));
       setDate(dayjs().format('YYYY-MM-DD'));
@@ -78,7 +76,7 @@ const BarberPage: React.FC = () => {
       clienteNombre: turnoNotificado.ClienteNombre,
       clienteApellido: turnoNotificado.ClienteApellido,
       servicioNombre: turnoNotificado.ServicioNombre,
-      fechaHoraInicio: dayjs.utc(turnoNotificado.FechaHoraInicio).local().format(),
+      fechaHoraInicio: dayjs(turnoNotificado.FechaHoraInicio).format('YYYY-MM-DD HH:mm:ss'),
       duracion: turnoNotificado.Duracion,
       estado: typeof turnoNotificado.Estado === 'string'
         ? mapEstadoTextoANumero(turnoNotificado.Estado)
@@ -108,9 +106,9 @@ const BarberPage: React.FC = () => {
         .filter((t: any) => t.barberoId === Number(nameid));
       const idsExistentes = new Set(response.map((t: any) => t.id));
       const turnosCombinados = [
-        ...response.map((t:any) => ({
+        ...response.map((t: any) => ({
           ...t,
-          fechaHoraInicio: dayjs.utc(t.fechaHoraInicio).local().format()
+          fechaHoraInicio: dayjs(t.fechaHoraInicio).format('YYYY-MM-DD HH:mm:ss')
         })),
         ...turnosExtra.filter((t: any) => !idsExistentes.has(t.id))
       ];

@@ -38,7 +38,7 @@ const RegistrarBarbero = () => {
   }, [idBarberia, barberiaSucursal, navigate]);
 
   const obtenerBarberosPorBarberias = async () => {
-    debugger
+    
     let barberiaId;
     if (barberiaSucursal) {
       barberiaId = barberiaSucursal.id
