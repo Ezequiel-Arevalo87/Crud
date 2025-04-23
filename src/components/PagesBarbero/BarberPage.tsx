@@ -47,6 +47,7 @@ const BarberPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    debugger
     if (notification?.data) {
       agregarTurnoDesdeNotificacion(notification.data);
     }
