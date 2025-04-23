@@ -49,6 +49,8 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
   const [selectedTab, setSelectedTab] = useState(0);
   const [turnosActualizados, setTurnosActualizados] = useState<Turno[]>([]);
 
+
+
   useEffect(() => {
     const actualizarEstados = () => {
       const ahora = dayjs();
@@ -104,7 +106,13 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
   const fechasExtras = fechas.slice(4);
   const todasLasFechas = [...fechasPrincipales, ...(fechasExtras.length ? ['OTRAS'] : [])];
 
-  const [fechaTabSeleccionada, setFechaTabSeleccionada] = useState(todasLasFechas[0] || '');
+  const [fechaTabSeleccionada, setFechaTabSeleccionada] = useState<string>('');
+  useEffect(() => {
+    if (!fechaTabSeleccionada && todasLasFechas.length > 0) {
+      setFechaTabSeleccionada(todasLasFechas[0]); // Selecciona la primera fecha disponible
+    }
+  }, [todasLasFechas]);
+  
 
   const handleFechaTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setFechaTabSeleccionada(todasLasFechas[newValue]);
