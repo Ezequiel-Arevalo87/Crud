@@ -45,6 +45,7 @@ const obtenerEstiloTurno = (estado: string | number) => {
 
 const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ listaTurnos, handleOpenModal }) => {
   const [selectedTab, setSelectedTab] = useState(0);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState('');
   const [turnosActualizados, setTurnosActualizados] = useState<Turno[]>([]);
 
   useEffect(() => {
@@ -93,9 +94,21 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
     cancelados: turnosActualizados.filter(turn => normalizarEstado(turn.estado) === 'CANCELADO' || normalizarEstado(turn.estado) === 'DISPONIBLE')
   };
 
-  const turnosAgrupadosPorFecha = groupBy(turnosFiltrados.enProceso, turno =>
+  const turnosAgrupados = groupBy(turnosFiltrados.enProceso, turno =>
     dayjs(turno.fechaHoraInicio).format('YYYY-MM-DD')
   );
+
+  const fechas = Object.keys(turnosAgrupados).sort();
+  const fechasPrincipales = fechas.slice(0, 4);
+  const fechasExtras = fechas.slice(4);
+
+  const todasLasFechas = [...fechasPrincipales, ...(fechasExtras.length ? ['OTRAS'] : [])];
+
+  const [fechaTabSeleccionada, setFechaTabSeleccionada] = useState(todasLasFechas[0] || '');
+
+  const handleFechaTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setFechaTabSeleccionada(todasLasFechas[newValue]);
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -107,34 +120,74 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
 
       {/* Pendientes / En Proceso */}
       <Box role="tabpanel" hidden={selectedTab !== 0}>
-        {Object.entries(turnosAgrupadosPorFecha).map(([fecha, turnos]) => (
-          <Box key={fecha}>
-            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-              {dayjs(fecha).format('dddd, DD [de] MMMM YYYY')}
-            </Typography>
-            {turnos.map(turn => (
-              <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2, ...obtenerEstiloTurno(turn.estado) }}>
-                <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
-                <ListItemText
-                  primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
-                  secondary={
-                    <>
-                      <p>Fecha Inicio: {turn.fechaHoraInicio}</p>
-                      <p>Duración: {turn.duracion}</p>
-                      <Timer fechaHoraInicio={turn.fechaHoraInicio} duracion={turn.duracion} />
-                    </>
-                  }
-                />
-                <Typography variant="body2" color="primary" sx={{ ml: 2 }}>
-                  {normalizarEstado(turn.estado)}
-                </Typography>
-                {normalizarEstado(turn.estado) !== 'EN PROCESO' && (
-                  <Button variant="outlined" color="error" onClick={() => handleOpenModal(turn.id)} sx={{ ml: 2 }}>
-                    Cancelar
-                  </Button>
-                )}
-              </ListItem>
-            ))}
+        <Tabs
+          value={todasLasFechas.indexOf(fechaTabSeleccionada)}
+          onChange={handleFechaTabChange}
+          aria-label="fechas de turnos"
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{ borderBottom: 1, borderColor: 'divider', mt: 2 }}
+        >
+          {fechasPrincipales.map(fecha => (
+            <Tab
+              key={fecha}
+              label={dayjs(fecha).format('dddd, DD MMM')}
+            />
+          ))}
+          {fechasExtras.length > 0 && <Tab label="Otras" />}
+        </Tabs>
+
+        {todasLasFechas.map((fecha, index) => (
+          <Box key={fecha} role="tabpanel" hidden={fechaTabSeleccionada !== fecha}>
+            {fecha === 'OTRAS'
+              ? fechasExtras.flatMap((extraFecha) =>
+                  turnosAgrupados[extraFecha].map(turn => (
+                    <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2, ...obtenerEstiloTurno(turn.estado) }}>
+                      <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
+                      <ListItemText
+                        primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
+                        secondary={
+                          <>
+                            <p>Fecha Inicio: {turn.fechaHoraInicio}</p>
+                            <p>Duración: {turn.duracion}</p>
+                            <Timer fechaHoraInicio={turn.fechaHoraInicio} duracion={turn.duracion} />
+                          </>
+                        }
+                      />
+                      <Typography variant="body2" color="primary" sx={{ ml: 2 }}>
+                        {normalizarEstado(turn.estado)}
+                      </Typography>
+                      {normalizarEstado(turn.estado) !== 'EN PROCESO' && (
+                        <Button variant="outlined" color="error" onClick={() => handleOpenModal(turn.id)} sx={{ ml: 2 }}>
+                          Cancelar
+                        </Button>
+                      )}
+                    </ListItem>
+                  ))
+                )
+              : turnosAgrupados[fecha]?.map(turn => (
+                  <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2, ...obtenerEstiloTurno(turn.estado) }}>
+                    <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
+                    <ListItemText
+                      primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
+                      secondary={
+                        <>
+                          <p>Fecha Inicio: {turn.fechaHoraInicio}</p>
+                          <p>Duración: {turn.duracion}</p>
+                          <Timer fechaHoraInicio={turn.fechaHoraInicio} duracion={turn.duracion} />
+                        </>
+                      }
+                    />
+                    <Typography variant="body2" color="primary" sx={{ ml: 2 }}>
+                      {normalizarEstado(turn.estado)}
+                    </Typography>
+                    {normalizarEstado(turn.estado) !== 'EN PROCESO' && (
+                      <Button variant="outlined" color="error" onClick={() => handleOpenModal(turn.id)} sx={{ ml: 2 }}>
+                        Cancelar
+                      </Button>
+                    )}
+                  </ListItem>
+                ))}
           </Box>
         ))}
       </Box>
