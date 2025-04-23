@@ -4,6 +4,7 @@ import {
   IconButton, Modal, TextField, Box, Avatar, Collapse, Divider
 } from '@mui/material';
 import { FaBell, FaClock, FaMinus, FaPlus } from 'react-icons/fa';
+import { keyframes } from '@mui/system';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -17,6 +18,15 @@ import apiTurnosService from '../../services/apiTurnosService';
 import TurnosProgramadosEstados from './TurnosProgramadosEstados';
 import useNotification from '../useNotification';
 import { agregarTurnoAlHistorial } from '../../components/helper/turnosStorage';
+
+const campanaTemblor = keyframes`
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-10deg); }
+  40% { transform: rotate(10deg); }
+  60% { transform: rotate(-8deg); }
+  80% { transform: rotate(8deg); }
+  100% { transform: rotate(0deg); }
+`;
 
 const BarberPage: React.FC = () => {
   const [time, setTime] = useState(dayjs().format('HH:mm:ss'));
@@ -45,9 +55,8 @@ const BarberPage: React.FC = () => {
   useEffect(() => {
     obtenerServiciosBarbero();
   }, []);
- // prueba
+
   useEffect(() => {
-    debugger
     if (notification?.data) {
       agregarTurnoDesdeNotificacion(notification.data);
     }
@@ -168,7 +177,12 @@ const BarberPage: React.FC = () => {
           <Typography><FaClock /> {time}</Typography>
           <Typography>{date}</Typography>
           <Badge badgeContent={turnosActivos.length} color="error">
-            <IconButton className={campanaActiva ? "campana-activa" : ""}>
+            <IconButton
+              sx={campanaActiva ? {
+                animation: `${campanaTemblor} 0.8s ease-in-out`,
+                color: 'orange'
+              } : {}}
+            >
               <FaBell />
             </IconButton>
           </Badge>
