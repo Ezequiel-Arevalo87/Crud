@@ -45,7 +45,7 @@ const BarberPage: React.FC = () => {
   useEffect(() => {
     obtenerServiciosBarbero();
   }, []);
-
+ // prueba
   useEffect(() => {
     debugger
     if (notification?.data) {
