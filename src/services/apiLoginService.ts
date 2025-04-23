@@ -3,10 +3,16 @@ import { setToken } from "./authService";
 
 // Endpoints de login para cada tipo de usuario
 const loginEndpoints = [
+
   "https://backend-barberias-1.onrender.com/api/Auth/login",
   "https://backend-barberias-1.onrender.com/api/Auth/loginBarberia",
   "https://backend-barberias-1.onrender.com/api/Auth/loginBarbero"
+  // "http://localhost:7238/api/Auth/login",
+  // "http://localhost:7238/api/Auth/loginBarberia",
+  // "http://localhost:7238/api/Auth/loginBarbero"
 ];
+
+
 
 // Login único que prueba todas las rutas
 export const login = async (correo: string, clave: string) => {

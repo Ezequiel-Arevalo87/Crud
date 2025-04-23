@@ -20,7 +20,8 @@ export const registrarTokenNotificaciones = async (
   usuarioId: number
 ): Promise<void> => {
   try {
-    await axios.post("https://backend-barberias-1.onrender.com/api/barbero/registrar-token-usuario", {
+     await axios.post("https://backend-barberias-1.onrender.com/api/barbero/registrar-token-usuario", {
+    // await axios.post("baseURL:'http://localhost:7238/api/barbero/registrar-token-usuario", {
       usuarioId,
       token: tokenFirebase,
     });

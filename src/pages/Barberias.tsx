@@ -246,11 +246,12 @@ const Barberias = () => {
                         <Stack direction="row" spacing={1} justifyContent="center">
                           {(role === "Super_Admin" || role === "Admin") && (
                             <>
-                              <Tooltip title="Agregar Horario">
-                                <IconButton color="info" onClick={() => handleHorarios(sucursal.id)}>
+                            { user.sucursales && <Tooltip title="Agregar Horario">
+                                <IconButton color="info" disabled onClick={() => handleHorarios(sucursal.id)}>
                                   <Today fontSize="small" />
                                 </IconButton>
                               </Tooltip>
+                              }
                               <Tooltip title="Agregar Barbero">
                                 <IconButton color="success" onClick={() => handleRegistrarSucursal(sucursal)}>
                                   <Visibility fontSize="small" />
