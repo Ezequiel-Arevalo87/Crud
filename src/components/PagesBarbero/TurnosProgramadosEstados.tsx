@@ -5,7 +5,8 @@ import {
 import Timer from './Timer';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import groupBy from 'lodash/groupBy';
+import { groupBy } from 'lodash';
+
 dayjs.extend(duration);
 
 interface Turno {
