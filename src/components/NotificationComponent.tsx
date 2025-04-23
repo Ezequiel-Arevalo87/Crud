@@ -21,7 +21,7 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ onNewTurn
 
       const timer = setTimeout(() => {
         setOpen(false);
-      }, 3000);
+      }, 6000);
 
       return () => clearTimeout(timer);
     }
@@ -30,7 +30,7 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ onNewTurn
   return (
     <Snackbar
       open={open}
-      autoHideDuration={3000}
+      autoHideDuration={6000}
       onClose={() => setOpen(false)}
       anchorOrigin={{ vertical: "top", horizontal: "center" }}
     >
