@@ -45,7 +45,6 @@ const obtenerEstiloTurno = (estado: string | number) => {
 
 const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ listaTurnos, handleOpenModal }) => {
   const [selectedTab, setSelectedTab] = useState(0);
-  const [fechaSeleccionada, setFechaSeleccionada] = useState('');
   const [turnosActualizados, setTurnosActualizados] = useState<Turno[]>([]);
 
   useEffect(() => {
@@ -137,7 +136,7 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
           {fechasExtras.length > 0 && <Tab label="Otras" />}
         </Tabs>
 
-        {todasLasFechas.map((fecha, index) => (
+        {todasLasFechas.map((fecha, _index) => (
           <Box key={fecha} role="tabpanel" hidden={fechaTabSeleccionada !== fecha}>
             {fecha === 'OTRAS'
               ? fechasExtras.flatMap((extraFecha) =>
