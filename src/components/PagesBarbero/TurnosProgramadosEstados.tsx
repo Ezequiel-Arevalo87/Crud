@@ -5,8 +5,10 @@ import {
 import Timer from './Timer';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import 'dayjs/locale/es';
 import { groupBy } from 'lodash';
 
+dayjs.locale('es');
 dayjs.extend(duration);
 
 interface Turno {
@@ -100,7 +102,6 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
   const fechas = Object.keys(turnosAgrupados).sort();
   const fechasPrincipales = fechas.slice(0, 4);
   const fechasExtras = fechas.slice(4);
-
   const todasLasFechas = [...fechasPrincipales, ...(fechasExtras.length ? ['OTRAS'] : [])];
 
   const [fechaTabSeleccionada, setFechaTabSeleccionada] = useState(todasLasFechas[0] || '');
@@ -112,7 +113,7 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
   return (
     <Box sx={{ width: '100%' }}>
       <Tabs value={selectedTab} onChange={handleTabChange} aria-label="turnos programados">
-        <Tab label="Pendientes / En Proceso" />
+        <Tab label="Pendientes / En proceso" />
         <Tab label="Cerrados" />
         <Tab label="Cancelados" />
       </Tabs>
@@ -122,7 +123,6 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
         <Tabs
           value={todasLasFechas.indexOf(fechaTabSeleccionada)}
           onChange={handleFechaTabChange}
-          aria-label="fechas de turnos"
           variant="scrollable"
           scrollButtons="auto"
           sx={{ borderBottom: 1, borderColor: 'divider', mt: 2 }}
@@ -130,7 +130,7 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
           {fechasPrincipales.map(fecha => (
             <Tab
               key={fecha}
-              label={dayjs(fecha).format('dddd, DD MMM')}
+              label={dayjs(fecha).format('dddd, DD [de] MMMM')}
             />
           ))}
           {fechasExtras.length > 0 && <Tab label="Otras" />}
@@ -138,55 +138,31 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
 
         {todasLasFechas.map((fecha, _index) => (
           <Box key={fecha} role="tabpanel" hidden={fechaTabSeleccionada !== fecha}>
-            {fecha === 'OTRAS'
-              ? fechasExtras.flatMap((extraFecha) =>
-                  turnosAgrupados[extraFecha].map(turn => (
-                    <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2, ...obtenerEstiloTurno(turn.estado) }}>
-                      <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
-                      <ListItemText
-                        primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
-                        secondary={
-                          <>
-                            <p>Fecha Inicio: {turn.fechaHoraInicio}</p>
-                            <p>Duración: {turn.duracion}</p>
-                            <Timer fechaHoraInicio={turn.fechaHoraInicio} duracion={turn.duracion} />
-                          </>
-                        }
-                      />
-                      <Typography variant="body2" color="primary" sx={{ ml: 2 }}>
-                        {normalizarEstado(turn.estado)}
-                      </Typography>
-                      {normalizarEstado(turn.estado) !== 'EN PROCESO' && (
-                        <Button variant="outlined" color="error" onClick={() => handleOpenModal(turn.id)} sx={{ ml: 2 }}>
-                          Cancelar
-                        </Button>
-                      )}
-                    </ListItem>
-                  ))
-                )
-              : turnosAgrupados[fecha]?.map(turn => (
-                  <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2, ...obtenerEstiloTurno(turn.estado) }}>
-                    <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
-                    <ListItemText
-                      primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
-                      secondary={
-                        <>
-                          <p>Fecha Inicio: {turn.fechaHoraInicio}</p>
-                          <p>Duración: {turn.duracion}</p>
-                          <Timer fechaHoraInicio={turn.fechaHoraInicio} duracion={turn.duracion} />
-                        </>
-                      }
-                    />
-                    <Typography variant="body2" color="primary" sx={{ ml: 2 }}>
-                      {normalizarEstado(turn.estado)}
-                    </Typography>
-                    {normalizarEstado(turn.estado) !== 'EN PROCESO' && (
-                      <Button variant="outlined" color="error" onClick={() => handleOpenModal(turn.id)} sx={{ ml: 2 }}>
-                        Cancelar
-                      </Button>
-                    )}
-                  </ListItem>
-                ))}
+            {(fecha === 'OTRAS' ? fechasExtras : [fecha]).flatMap((f) =>
+              turnosAgrupados[f]?.map(turn => (
+                <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2, ...obtenerEstiloTurno(turn.estado) }}>
+                  <Avatar src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914.jpeg" alt="Cliente" sx={{ mr: 2 }} />
+                  <ListItemText
+                    primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
+                    secondary={
+                      <>
+                        <p>Fecha Inicio: {turn.fechaHoraInicio}</p>
+                        <p>Duración: {turn.duracion}</p>
+                        <Timer fechaHoraInicio={turn.fechaHoraInicio} duracion={turn.duracion} />
+                      </>
+                    }
+                  />
+                  <Typography variant="body2" color="primary" sx={{ ml: 2 }}>
+                    {normalizarEstado(turn.estado)}
+                  </Typography>
+                  {normalizarEstado(turn.estado) !== 'EN PROCESO' && (
+                    <Button variant="outlined" color="error" onClick={() => handleOpenModal(turn.id)} sx={{ ml: 2 }}>
+                      Cancelar
+                    </Button>
+                  )}
+                </ListItem>
+              ))
+            )}
           </Box>
         ))}
       </Box>
