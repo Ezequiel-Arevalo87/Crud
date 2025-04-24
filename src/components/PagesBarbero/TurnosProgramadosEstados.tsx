@@ -20,6 +20,7 @@ interface Turno {
   duracion: string;
   estado: string | number;
   barberoId: number;
+  motivoCancelacion:string;
 }
 
 interface TurnosProgramadosEstadosProps {
@@ -202,7 +203,11 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
               <ListItemText
                 primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
                 secondary={`${turn.fechaHoraInicio} - ${turn.duracion}`}
+               
               />
+              <span>
+                   {`${turn.motivoCancelacion}`}
+              </span>
               <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
                 CANCELADO
               </Typography>
