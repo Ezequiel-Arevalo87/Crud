@@ -110,8 +110,10 @@ const BarberPage: React.FC = () => {
   };
 
   const obtenerTurnosBarbero = async () => {
+    debugger
     try {
       const response = await apiTurnosService.getTurnos(Number(nameid));
+      console.log({response})
       const turnosExtra = JSON.parse(localStorage.getItem("turnos_extra") || "[]")
         .filter((t: any) => t.barberoId === Number(nameid));
       const idsExistentes = new Set(response.map((t: any) => t.id));
