@@ -116,15 +116,16 @@ const BarberPage: React.FC = () => {
   
     setListaTurnos(prev => {
       const existe = prev.find(t => t.id === id);
+      const nuevoEstado = { ...nuevoTurno };
+    
       if (existe) {
-        // ✅ actualiza completamente ese turno
-        return prev.map(t => t.id === id ? { ...t, ...nuevoTurno } : t);
+        const actualizados = prev.map(t => t.id === id ? nuevoEstado : t);
+        return [...actualizados]; // 🔁 nueva referencia
       } else {
         agregarTurnoAlHistorial(id);
         setCampanaActiva(true);
         setTimeout(() => setCampanaActiva(false), 1500);
-        // ✅ agrega el nuevo turno
-        return [...prev, nuevoTurno];
+        return [...prev, nuevoEstado];
       }
     });
   };
