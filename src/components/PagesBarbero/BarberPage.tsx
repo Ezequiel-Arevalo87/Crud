@@ -109,26 +109,31 @@ const BarberPage: React.FC = () => {
         ? mapEstadoTextoANumero(turnoNotificado.Estado)
         : turnoNotificado.Estado,
       barberoId: Number(turnoNotificado.BarberoId),
-      motivoCancelacion: turnoNotificado.MotivoCancelacion ?? "", // ✅ si lo estás enviando desde backend
+      motivoCancelacion: turnoNotificado.MotivoCancelacion ?? '',
     };
   
-    if (nuevoTurno.barberoId !== Number(decoded?.barberoId)) return;
+    console.log('📩 Turno recibido por notificación:', nuevoTurno);
+  
+    if (nuevoTurno.barberoId !== Number(decoded?.barberoId)) {
+      console.warn("⚠️ Turno no es para este barbero");
+      return;
+    }
   
     setListaTurnos(prev => {
       const existe = prev.find(t => t.id === id);
-      const nuevoEstado = { ...nuevoTurno };
-    
       if (existe) {
-        const actualizados = prev.map(t => t.id === id ? nuevoEstado : t);
-        return [...actualizados]; // 🔁 nueva referencia
+        console.log('🔁 Actualizando turno existente');
+        return prev.map(t => t.id === id ? { ...t, ...nuevoTurno } : t);
       } else {
+        console.log('🆕 Insertando nuevo turno');
         agregarTurnoAlHistorial(id);
         setCampanaActiva(true);
         setTimeout(() => setCampanaActiva(false), 1500);
-        return [...prev, nuevoEstado];
+        return [...prev, nuevoTurno];
       }
     });
   };
+  
   
 
   const obtenerTurnosBarbero = async () => {
