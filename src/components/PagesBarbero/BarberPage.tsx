@@ -90,8 +90,8 @@ const BarberPage: React.FC = () => {
       case 'pendiente': return 0;
       case 'en_proceso': return 1;
       case 'cerrado': return 2;
-      case 'cancelado': return 3;
-      case 'disponible': return 4;
+      case 'cancelado': return 4;
+      case 'disponible': return 3;
       default: return estado;
     }
   };
