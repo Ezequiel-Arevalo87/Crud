@@ -44,6 +44,23 @@ const BarberPage: React.FC = () => {
   const notification = useNotification();
 
   useEffect(() => {
+    const handler = (event: any) => {
+      const { turnoId, nuevoEstado } = event.detail;
+  
+      setListaTurnos((prevTurnos: any[]) =>
+        prevTurnos.map((turno: any) =>
+          turno.id === turnoId ? { ...turno, estado: nuevoEstado } : turno
+        )
+      );
+    };
+  
+    window.addEventListener("turno-cancelado", handler);
+  
+    return () => window.removeEventListener("turno-cancelado", handler);
+  }, []);
+  
+
+  useEffect(() => {
     setTurnosActivos([]);
     const timer = setInterval(() => {
       setTime(dayjs().format('HH:mm:ss'));
@@ -110,7 +127,7 @@ const BarberPage: React.FC = () => {
   };
 
   const obtenerTurnosBarbero = async () => {
-    debugger
+    
     try {
       const response = await apiTurnosService.getTurnos(Number(nameid));
       console.log({response})
