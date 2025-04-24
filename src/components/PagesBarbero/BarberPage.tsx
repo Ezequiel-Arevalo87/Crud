@@ -108,23 +108,27 @@ const BarberPage: React.FC = () => {
       estado: typeof turnoNotificado.Estado === 'string'
         ? mapEstadoTextoANumero(turnoNotificado.Estado)
         : turnoNotificado.Estado,
-      barberoId: Number(turnoNotificado.BarberoId)
+      barberoId: Number(turnoNotificado.BarberoId),
+      motivoCancelacion: turnoNotificado.MotivoCancelacion ?? "", // ✅ si lo estás enviando desde backend
     };
-
+  
     if (nuevoTurno.barberoId !== Number(decoded?.barberoId)) return;
-
+  
     setListaTurnos(prev => {
       const existe = prev.find(t => t.id === id);
       if (existe) {
+        // ✅ actualiza completamente ese turno
         return prev.map(t => t.id === id ? { ...t, ...nuevoTurno } : t);
       } else {
         agregarTurnoAlHistorial(id);
         setCampanaActiva(true);
         setTimeout(() => setCampanaActiva(false), 1500);
+        // ✅ agrega el nuevo turno
         return [...prev, nuevoTurno];
       }
     });
   };
+  
 
   const obtenerTurnosBarbero = async () => {
     
