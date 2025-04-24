@@ -196,25 +196,53 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
 
       {/* Cancelados */}
       <Box role="tabpanel" hidden={selectedTab !== 2}>
-        <List>
-          {turnosFiltrados.cancelados.map(turn => (
-            <ListItem key={turn.id} sx={{ p: 2, borderRadius: 2, mb: 2 }}>
-              <Avatar src="https://via.placeholder.com/40" alt="Cliente" sx={{ mr: 2 }} />
-              <ListItemText
-                primary={`${turn.clienteNombre} ${turn.clienteApellido} - ${turn.servicioNombre}`}
-                secondary={`${turn.fechaHoraInicio} - ${turn.duracion}`}
-               
-              />
-              <span>
-                   {`${turn.motivoCancelacion}`}
-              </span>
-              <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
-                CANCELADO
+  <List>
+    {turnosFiltrados.cancelados.map((turn) => (
+      <ListItem
+        key={turn.id}
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          mb: 2,
+          bgcolor: "#f9f9f9",
+          boxShadow: 1,
+          alignItems: "flex-start",
+        }}
+      >
+        <Avatar
+          src="https://d1itoeljuz09pk.cloudfront.net/don_juan_barberia_new/gallery/1707023662914."
+          alt="Cliente"
+          sx={{ mr: 2 }}
+        />
+        <ListItemText
+          primary={
+            <Typography fontWeight="bold">
+              {turn.clienteNombre} {turn.clienteApellido} – {turn.servicioNombre}
+            </Typography>
+          }
+          secondary={
+            <>
+              <Typography variant="body2" color="textSecondary">
+                {`${turn.fechaHoraInicio} - ${turn.duracion}`}
               </Typography>
-            </ListItem>
-          ))}
-        </List>
-      </Box>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                <strong>Motivo:</strong> {turn.motivoCancelacion}
+              </Typography>
+            </>
+          }
+        />
+        <Typography
+          variant="caption"
+          color="error"
+          sx={{ fontWeight: "bold", ml: 2, mt: 0.5 }}
+        >
+          CANCELADO
+        </Typography>
+      </ListItem>
+    ))}
+  </List>
+</Box>
+
     </Box>
   );
 };
