@@ -51,32 +51,43 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
   const [turnosActualizados, setTurnosActualizados] = useState<Turno[]>([]);
 
 
-  useEffect(() => {
-    const ahora = dayjs();
+  const agregarTurnoDesdeNotificacion = (turnoNotificado: any) => {
+    const id = Number(turnoNotificado.TurnoId);
+    const nuevoTurno = {
+      id,
+      clienteNombre: turnoNotificado.ClienteNombre,
+      clienteApellido: turnoNotificado.ClienteApellido,
+      servicioNombre: turnoNotificado.ServicioNombre,
+      fechaHoraInicio: dayjs(turnoNotificado.FechaHoraInicio).format('YYYY-MM-DD HH:mm:ss'),
+      duracion: turnoNotificado.Duracion,
+      estado: typeof turnoNotificado.Estado === 'string'
+        ? mapEstadoTextoANumero(turnoNotificado.Estado)
+        : turnoNotificado.Estado,
+      barberoId: Number(turnoNotificado.BarberoId),
+      motivoCancelacion: turnoNotificado.MotivoCancelacion ?? '',
+    };
   
-    const actualizados = listaTurnos.map(turn => {
-      const estadoOriginal = Number(turn.estado);
+    console.log('📩 Turno recibido por notificación:', nuevoTurno);
   
-      if (estadoOriginal === 2 || estadoOriginal === 4 || estadoOriginal === 3) {
-        return turn;
-      }
+    if (nuevoTurno.barberoId !== Number(decoded?.barberoId)) {
+      console.warn("⚠️ Turno no es para este barbero");
+      return;
+    }
   
-      const inicio = dayjs(turn.fechaHoraInicio);
-      const [h, m, s] = turn.duracion.split(':').map(Number);
-      const minutos = h * 60 + m + Math.floor(s / 60);
-      const fin = inicio.add(minutos, 'minute');
-  
-      if (ahora.isAfter(fin)) {
-        return { ...turn, estado: 2 };
-      } else if (ahora.isAfter(inicio)) {
-        return { ...turn, estado: 1 };
+    setListaTurnos(prev => {
+      const existe = prev.find(t => t.id === id);
+      if (existe) {
+        console.log('🔁 Actualizando turno existente');
+        return prev.map(t => t.id === id ? { ...t, ...nuevoTurno } : t);
       } else {
-        return { ...turn, estado: 0 };
+        console.log('🆕 Insertando nuevo turno');
+        agregarTurnoAlHistorial(id);
+        setCampanaActiva(true);
+        setTimeout(() => setCampanaActiva(false), 1500);
+        return [...prev, nuevoTurno];
       }
     });
-  
-    setTurnosActualizados([...actualizados]); // 🔁 asegurar nueva referencia
-  }, [JSON.stringify(listaTurnos)]); // 👈 ya estaba bien
+  };
   
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
