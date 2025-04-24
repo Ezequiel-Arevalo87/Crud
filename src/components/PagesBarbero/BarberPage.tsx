@@ -116,7 +116,7 @@ const BarberPage: React.FC = () => {
     setListaTurnos(prev => {
       const existe = prev.find(t => t.id === id);
       if (existe) {
-        return prev.map(t => t.id === id ? { ...t, estado: nuevoTurno.estado } : t);
+        return prev.map(t => t.id === id ? { ...t, ...nuevoTurno } : t);
       } else {
         agregarTurnoAlHistorial(id);
         setCampanaActiva(true);
