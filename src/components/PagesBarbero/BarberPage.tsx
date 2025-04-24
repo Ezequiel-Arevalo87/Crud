@@ -127,7 +127,7 @@ const BarberPage: React.FC = () => {
   };
 
   const obtenerTurnosBarbero = async () => {
-    debugger
+    
     try {
       const response = await apiTurnosService.getTurnos(Number(nameid));
       console.log({response})
