@@ -3,6 +3,7 @@ import AppRouter from "./routes/AppRouter";
 import { AuthProvider } from "./components/context/AuthContext";
 import NotificationComponent from "./components/NotificationComponent";
 import { registerServiceWorker } from "./services/serviceWorker";
+import NotificationListener from "./components/theme/NotificationListener";
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
   constructor(props: { children: React.ReactNode }) {
@@ -32,12 +33,15 @@ const App = () => {
   };
 
   return (
+    <>
+    <NotificationListener/>
     <ErrorBoundary>
       <AuthProvider>
         <NotificationComponent onNewTurno={handleNuevoTurno} />
         <AppRouter />
       </AuthProvider>
     </ErrorBoundary>
+    </>
   );
 };
 
