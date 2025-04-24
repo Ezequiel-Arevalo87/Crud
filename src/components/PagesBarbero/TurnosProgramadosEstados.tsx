@@ -51,23 +51,22 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
   const [turnosActualizados, setTurnosActualizados] = useState<Turno[]>([]);
 
 
-
   useEffect(() => {
     const actualizarEstados = () => {
       const ahora = dayjs();
-
+  
       const actualizados = listaTurnos.map(turn => {
         const estadoOriginal = Number(turn.estado);
-
+  
         if (estadoOriginal === 2 || estadoOriginal === 4 || estadoOriginal === 3) {
           return turn;
         }
-
+  
         const inicio = dayjs(turn.fechaHoraInicio);
         const [h, m, s] = turn.duracion.split(':').map(Number);
         const minutos = h * 60 + m + Math.floor(s / 60);
         const fin = inicio.add(minutos, 'minute');
-
+  
         if (ahora.isAfter(fin)) {
           return { ...turn, estado: 2 };
         } else if (ahora.isAfter(inicio)) {
@@ -76,15 +75,16 @@ const TurnosProgramadosEstados: React.FC<TurnosProgramadosEstadosProps> = ({ lis
           return { ...turn, estado: 0 };
         }
       });
-
+  
       setTurnosActualizados(actualizados);
     };
-
+  
     actualizarEstados();
+  
     const interval = setInterval(actualizarEstados, 60000);
     return () => clearInterval(interval);
-  }, [listaTurnos]);
-
+  }, [JSON.stringify(listaTurnos)]); // 🔁 esto está bien, no se toca
+  
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
   };
