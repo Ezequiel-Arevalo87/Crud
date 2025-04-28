@@ -31,12 +31,6 @@ const Home = () => {
       setToken(null)
     }
   }, [mensaje == 'OK']);
-  // useEffect(() => {
-  //   if (mensaje == 'OK') {
-  //     setToken(null)
-  //   }
-  // }, [mensaje == 'OK']);
-
 
 
   const obtenerAllBarberias = async () => {

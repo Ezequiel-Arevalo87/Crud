@@ -4,6 +4,7 @@ import { AuthProvider } from "./components/context/AuthContext";
 import NotificationComponent from "./components/NotificationComponent";
 import { registerServiceWorker } from "./services/serviceWorker";
 import NotificationListener from "./components/theme/NotificationListener";
+import { TurnosProvider } from "./context/TurnosContext";
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
   constructor(props: { children: React.ReactNode }) {
@@ -28,19 +29,18 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 }
 
 const App = () => {
-  const handleNuevoTurno = (turnoData: any) => {
-    window.dispatchEvent(new CustomEvent("nuevo-turno", { detail: turnoData }));
-  };
-
+ 
   return (
     <>
-    <NotificationListener/>
-    <ErrorBoundary>
-      <AuthProvider>
-        <NotificationComponent onNewTurno={handleNuevoTurno} />
-        <AppRouter />
-      </AuthProvider>
-    </ErrorBoundary>
+      <TurnosProvider>
+        <NotificationListener />
+        <ErrorBoundary>
+          <AuthProvider>
+          <NotificationComponent />
+            <AppRouter />
+          </AuthProvider>
+        </ErrorBoundary>
+      </TurnosProvider>
     </>
   );
 };

@@ -1,10 +1,9 @@
+// src/components/PagesBarbero/BarberPage.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Card, CardContent, Button, Typography, Badge, List, ListItem, ListItemText,
   IconButton, Modal, TextField, Box, Avatar, Collapse, Divider,
-  RadioGroup,
-  FormControlLabel,
-  Radio
+  RadioGroup, FormControlLabel, Radio
 } from '@mui/material';
 import { FaBell, FaClock, FaMinus, FaPlus } from 'react-icons/fa';
 import { keyframes } from '@mui/system';
@@ -21,6 +20,7 @@ import apiTurnosService from '../../services/apiTurnosService';
 import TurnosProgramadosEstados from './TurnosProgramadosEstados';
 import useNotification from '../useNotification';
 import { agregarTurnoAlHistorial } from '../../components/helper/turnosStorage';
+import { useTurnos } from '../../context/TurnosContext';
 
 const campanaTemblor = keyframes`
   0% { transform: rotate(0deg); }
@@ -39,33 +39,30 @@ const BarberPage: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [selectedTurnId, setSelectedTurnId] = useState<number | null>(null);
-  const [listaTurnos, setListaTurnos] = useState<any[]>([]);
-  const [turnosActivos, setTurnosActivos] = useState<any[]>([]);
   const [campanaActiva, setCampanaActiva] = useState(false);
+  const [restoreTurn, setRestoreTurn] = useState(false);
+
+  const { turnos, setTurnos, agregarTurno } = useTurnos();
   const decoded = getDecodedToken();
   const nameid = decoded?.barberoId;
   const notification = useNotification();
-  const [restoreTurn, setRestoreTurn] = useState(false);
 
   useEffect(() => {
     const handler = (event: any) => {
       const { turnoId, nuevoEstado } = event.detail;
-  
-      setListaTurnos((prevTurnos: any[]) =>
-        prevTurnos.map((turno: any) =>
-          turno.id === turnoId ? { ...turno, estado: nuevoEstado } : turno
-        )
+
+      const turnosActualizados = turnos.map((turno) =>
+        turno.id === turnoId ? { ...turno, estado: nuevoEstado } : turno
       );
+
+      setTurnos(turnosActualizados);
     };
-  
+
     window.addEventListener("turno-cancelado", handler);
-  
     return () => window.removeEventListener("turno-cancelado", handler);
-  }, []);
-  
+  }, [turnos, setTurnos]);
 
   useEffect(() => {
-    setTurnosActivos([]);
     const timer = setInterval(() => {
       setTime(dayjs().format('HH:mm:ss'));
       setDate(dayjs().format('YYYY-MM-DD'));
@@ -84,7 +81,7 @@ const BarberPage: React.FC = () => {
   }, [notification?.data]);
 
   useEffect(() => {
-    if (!listaTurnos.length) {
+    if (!turnos.length) {
       obtenerTurnosBarbero();
     }
   }, []);
@@ -115,36 +112,18 @@ const BarberPage: React.FC = () => {
       barberoId: Number(turnoNotificado.BarberoId),
       motivoCancelacion: turnoNotificado.MotivoCancelacion ?? '',
     };
-  
-    console.log('📩 Turno recibido por notificación:', nuevoTurno);
-  
-    if (nuevoTurno.barberoId !== Number(decoded?.barberoId)) {
-      console.warn("⚠️ Turno no es para este barbero");
-      return;
-    }
-  
-    setListaTurnos(prev => {
-      const existe = prev.find(t => t.id === id);
-      if (existe) {
-        console.log('🔁 Actualizando turno existente');
-        return prev.map(t => t.id === id ? { ...t, ...nuevoTurno } : t);
-      } else {
-        console.log('🆕 Insertando nuevo turno');
-        agregarTurnoAlHistorial(id);
-        setCampanaActiva(true);
-        setTimeout(() => setCampanaActiva(false), 1500);
-        return [...prev, nuevoTurno];
-      }
-    });
+
+    if (nuevoTurno.barberoId !== Number(decoded?.barberoId)) return;
+
+    agregarTurno(nuevoTurno);
+    agregarTurnoAlHistorial(id);
+    setCampanaActiva(true);
+    setTimeout(() => setCampanaActiva(false), 1500);
   };
-  
-  
 
   const obtenerTurnosBarbero = async () => {
-    
     try {
       const response = await apiTurnosService.getTurnos(Number(nameid));
-      console.log({response})
       const turnosExtra = JSON.parse(localStorage.getItem("turnos_extra") || "[]")
         .filter((t: any) => t.barberoId === Number(nameid));
       const idsExistentes = new Set(response.map((t: any) => t.id));
@@ -155,7 +134,7 @@ const BarberPage: React.FC = () => {
         })),
         ...turnosExtra.filter((t: any) => !idsExistentes.has(t.id))
       ];
-      setListaTurnos(turnosCombinados);
+      setTurnos(turnosCombinados);
       limpiarTurnosLocalesYaGuardados(response);
     } catch (error) {
       console.error("Error al obtener turnos");
@@ -182,6 +161,7 @@ const BarberPage: React.FC = () => {
     setSelectedTurnId(id);
     setOpenModal(true);
   };
+
   const handleCancelTurn = async () => {
     if (selectedTurnId !== null) {
       try {
@@ -189,18 +169,20 @@ const BarberPage: React.FC = () => {
           turnoId: selectedTurnId,
           motivo: cancelReason,
           rol: "Barbero",
-          restaurar: restoreTurn // 🆕 envía la opción que eligió el barbero
+          restaurar: restoreTurn
         });
         await obtenerTurnosBarbero();
       } catch (error) {
         console.error("Error cancelando turno", error);
       }
       setCancelReason("");
-      setRestoreTurn(false); // 🆕 resetea la selección
+      setRestoreTurn(false);
       setOpenModal(false);
     }
   };
+
   const toggleServiceCollapse = () => setIsServiceCollapsed(!isServiceCollapsed);
+
   return (
     <Box sx={{ backgroundColor: '#f7f7f7', minHeight: '100vh', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Card sx={{ p: 3, boxShadow: 3, maxWidth: '900px', width: '90%', mb: 4 }}>
@@ -208,7 +190,7 @@ const BarberPage: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
           <Typography><FaClock /> {time}</Typography>
           <Typography>{date}</Typography>
-          <Badge badgeContent={turnosActivos.length} color="error">
+          <Badge badgeContent={turnos.filter(t => t.estado === 0 || t.estado === 1).length} color="error">
             <IconButton
               sx={campanaActiva ? {
                 animation: `${campanaTemblor} 0.8s ease-in-out`,
@@ -270,40 +252,33 @@ const BarberPage: React.FC = () => {
       </Card>
 
       <Card sx={{ p: 3, boxShadow: 3, maxWidth: '900px', width: '90%', mb: 4 }}>
-        <TurnosProgramadosEstados listaTurnos={listaTurnos} handleOpenModal={handleOpenModal} />
+        <TurnosProgramadosEstados listaTurnos={turnos} handleOpenModal={handleOpenModal} />
       </Card>
 
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
-  <Card sx={{ p: 3, m: 'auto', maxWidth: '400px' }}>
-    <CardContent>
-      <Typography variant="h6" gutterBottom>
-        ¿Qué quieres hacer con el turno?
-      </Typography>
-
-      {/* 🆕 Opciones de radio para cancelar o habilitar */}
-      <RadioGroup
-        value={restoreTurn ? 'habilitar' : 'cancelar'}
-        onChange={(e) => setRestoreTurn(e.target.value === 'habilitar')}
-      >
-        <FormControlLabel value="cancelar" control={<Radio />} label="Cancelar definitivamente" />
-        <FormControlLabel value="habilitar" control={<Radio />} label="Cancelar y habilitar para otro cliente" />
-      </RadioGroup>
-
-      {/* Campo para escribir el motivo */}
-      <TextField
-        fullWidth
-        value={cancelReason}
-        onChange={(e) => setCancelReason(e.target.value)}
-        placeholder="Motivo de cancelación"
-        sx={{ mt: 2 }}
-      />
-
-      <Button variant="contained" color="error" onClick={handleCancelTurn} sx={{ mt: 2 }}>
-        Confirmar
-      </Button>
-    </CardContent>
-  </Card>
-</Modal>
+        <Card sx={{ p: 3, m: 'auto', maxWidth: '400px' }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>¿Qué quieres hacer con el turno?</Typography>
+            <RadioGroup
+              value={restoreTurn ? 'habilitar' : 'cancelar'}
+              onChange={(e) => setRestoreTurn(e.target.value === 'habilitar')}
+            >
+              <FormControlLabel value="cancelar" control={<Radio />} label="Cancelar definitivamente" />
+              <FormControlLabel value="habilitar" control={<Radio />} label="Cancelar y habilitar para otro cliente" />
+            </RadioGroup>
+            <TextField
+              fullWidth
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Motivo de cancelación"
+              sx={{ mt: 2 }}
+            />
+            <Button variant="contained" color="error" onClick={handleCancelTurn} sx={{ mt: 2 }}>
+              Confirmar
+            </Button>
+          </CardContent>
+        </Card>
+      </Modal>
     </Box>
   );
 };

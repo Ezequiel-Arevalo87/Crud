@@ -1,22 +1,35 @@
 import React, { useEffect, useState } from "react";
 import useNotification from "./useNotification";
 import { Alert, Snackbar } from "@mui/material";
+import { useTurnos } from "../context/TurnosContext"; // ✅ Importa el contexto
 
-interface NotificationComponentProps {
-  onNewTurno?: (turnoData: any) => void;
-}
-
-const NotificationComponent: React.FC<NotificationComponentProps> = ({ onNewTurno }) => {
-  const notification:any = useNotification();
+const NotificationComponent: React.FC = () => {
+  const notification: any = useNotification();
   const [open, setOpen] = useState(false);
+
+  const { agregarTurno } = useTurnos(); // ✅ Usa la función de contexto
 
   useEffect(() => {
     if (notification) {
       setOpen(true);
 
-      // Si contiene datos, enviarlos
-      if (notification.data && onNewTurno) {
-        onNewTurno(notification.data);
+      // Si contiene datos, agregarlos al Contexto
+      if (notification.data) {
+        const data = notification.data;
+
+        const nuevoTurno = {
+          id: Number(data.id),
+          barberoId: Number(data.barberoId),
+          clienteNombre: data.clienteNombre,
+          clienteApellido: data.clienteApellido,
+          servicioNombre: data.servicioNombre,
+          fechaHoraInicio: data.fechaHoraInicio,
+          duracion: data.duracion,
+          estado: Number(data.estado),
+          motivoCancelacion: data.motivoCancelacion || "",
+        };
+
+        agregarTurno(nuevoTurno); // ✅ Agrega al contexto
       }
 
       const timer = setTimeout(() => {
@@ -25,7 +38,7 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ onNewTurn
 
       return () => clearTimeout(timer);
     }
-  }, [notification]);
+  }, [notification, agregarTurno]);
 
   return (
     <Snackbar
