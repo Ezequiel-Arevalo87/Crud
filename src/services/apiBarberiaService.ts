@@ -10,6 +10,8 @@ const apiBarberia = axios.create({
 
 // Interceptor para agregar el token en cada petición
 // prueba para despliegue 
+// prueba para despliegue 
+// prueba para despliegue 
 apiBarberia.interceptors.request.use(
   (config) => {
     const token = getToken();
