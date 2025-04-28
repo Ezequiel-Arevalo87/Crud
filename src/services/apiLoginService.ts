@@ -1,20 +1,17 @@
 import axios from "axios";
 import { setToken } from "./authService";
 
-// Endpoints de login para cada tipo de usuario
-const loginEndpoints = [
+// ✅ Lee la URL base desde tu archivo .env
+const API_URL = import.meta.env.VITE_API_URL;
 
-  "https://backend-barberias-1.onrender.com/api/Auth/login",
-  "https://backend-barberias-1.onrender.com/api/Auth/loginBarberia",
-  "https://backend-barberias-1.onrender.com/api/Auth/loginBarbero"
-  // "http://localhost:7238/api/Auth/login",
-  // "http://localhost:7238/api/Auth/loginBarberia",
-  // "http://localhost:7238/api/Auth/loginBarbero"
+// ✅ Login endpoints construidos con la baseURL
+const loginEndpoints = [
+  `${API_URL}/Auth/login`,
+  `${API_URL}/Auth/loginBarberia`,
+  `${API_URL}/Auth/loginBarbero`
 ];
 
-
-
-// Login único que prueba todas las rutas
+// 🔐 Login que prueba todas las rutas disponibles
 export const login = async (correo: string, clave: string) => {
   const headers = { "Content-Type": "application/json" };
 
@@ -23,14 +20,13 @@ export const login = async (correo: string, clave: string) => {
       const response = await axios.post(url, { correo, clave }, { headers });
 
       if (response.data?.token) {
-        setToken(response.data.token); // Guarda el token en sessionStorage
-        return response.data; // Retorna los datos completos
+        setToken(response.data.token); // Guarda token (en sessionStorage u otra lógica tuya)
+        return response.data; // Retorna el usuario y token
       }
     } catch (error: any) {
       console.warn(`❌ Falló intento en: ${url}`);
     }
   }
 
-  // Si ninguno funcionó, lanza error genérico
   throw new Error("Correo o contraseña incorrectos");
 };

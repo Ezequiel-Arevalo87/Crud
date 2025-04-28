@@ -16,7 +16,6 @@ const messaging = firebase.messaging();
 
 // 📩 Manejo de notificaciones en segundo plano
 messaging.onBackgroundMessage(async (payload) => {
- 
   try {
     if (!payload.notification) {
       console.warn("⚠️ No se recibió la notificación en el payload.");
@@ -28,7 +27,7 @@ messaging.onBackgroundMessage(async (payload) => {
     // 📢 Mostrar la notificación en el navegador
     self.registration.showNotification(title, {
       body,
-      icon: "/icon.png", // Asegúrate de que esta imagen exista en public/
+      icon: "/icon.png", // asegúrate que este icono exista en /public
     });
 
     // 🔄 Enviar la notificación a la aplicación React
@@ -44,4 +43,9 @@ messaging.onBackgroundMessage(async (payload) => {
   } catch (error) {
     console.error("❌ Error al procesar la notificación en segundo plano:", error);
   }
+});
+
+// ✅ Agrega esto NUEVO abajo:
+self.addEventListener('message', (event) => {
+  console.log('💬 Mensaje recibido en Service Worker:', event.data);
 });

@@ -1,9 +1,9 @@
 import axios from "axios";
 import { getToken} from "./authService";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const apiServicios = axios.create({
-  // baseURL:'http://localhost:7238/api',
-   baseURL: "https://backend-barberias-1.onrender.com/api/", // Reemplaza con tu URL real
+
+   baseURL: API_URL, // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },

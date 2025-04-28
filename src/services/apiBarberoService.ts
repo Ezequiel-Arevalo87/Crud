@@ -1,9 +1,9 @@
 import axios from "axios";
 import { getToken} from "./authService";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const apiBarbero = axios.create({
-  // baseURL:'http://localhost:7238/api',
-   baseURL: "https://backend-barberias-1.onrender.com/api", // Reemplaza con tu URL real
+  
+   baseURL:API_URL, // Reemplaza con tu URL real
   headers: {
     "Content-Type": "application/json",
   },
@@ -25,29 +25,7 @@ apiBarbero.interceptors.request.use(
   }
 );
 
-// Métodos API con autenticación
 const apiBarberoService = {
-  // Obtener lista de usuarios
-//   async getBarberias() {
-//     try {
-//       const response = await apiBarberia.get("/barberias");
-//       return response.data;
-//     } catch (error) {
-//       console.error("Error al obtener barberias", error);
-//       throw error;
-//     }
-//   },
-
-  // Obtener un usuario por ID
-//   async getBarberiaById(id: string) {
-//     try {
-//       const response = await apiBarberia.get(`/barberias/${id}`);
-//       return response.data;
-//     } catch (error) {
-//       console.error("Error al obtener barberia", error);
-//       throw error;
-//     }
-//   },
 
    // Obtener un barberos  por ID de barberia
    async getBarberoPorBarberia(id: number) { // <-- Asegurar que el ID es un número

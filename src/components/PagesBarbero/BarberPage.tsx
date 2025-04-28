@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   Card, CardContent, Button, Typography, Badge, List, ListItem, ListItemText,
-  IconButton, Modal, TextField, Box, Avatar, Collapse, Divider
+  IconButton, Modal, TextField, Box, Avatar, Collapse, Divider,
+  RadioGroup,
+  FormControlLabel,
+  Radio
 } from '@mui/material';
 import { FaBell, FaClock, FaMinus, FaPlus } from 'react-icons/fa';
 import { keyframes } from '@mui/system';
@@ -42,6 +45,7 @@ const BarberPage: React.FC = () => {
   const decoded = getDecodedToken();
   const nameid = decoded?.barberoId;
   const notification = useNotification();
+  const [restoreTurn, setRestoreTurn] = useState(false);
 
   useEffect(() => {
     const handler = (event: any) => {
@@ -178,7 +182,6 @@ const BarberPage: React.FC = () => {
     setSelectedTurnId(id);
     setOpenModal(true);
   };
-
   const handleCancelTurn = async () => {
     if (selectedTurnId !== null) {
       try {
@@ -186,17 +189,17 @@ const BarberPage: React.FC = () => {
           turnoId: selectedTurnId,
           motivo: cancelReason,
           rol: "Barbero",
-          restaurar: true
+          restaurar: restoreTurn // 🆕 envía la opción que eligió el barbero
         });
         await obtenerTurnosBarbero();
       } catch (error) {
         console.error("Error cancelando turno", error);
       }
       setCancelReason("");
+      setRestoreTurn(false); // 🆕 resetea la selección
       setOpenModal(false);
     }
   };
-
   const toggleServiceCollapse = () => setIsServiceCollapsed(!isServiceCollapsed);
   return (
     <Box sx={{ backgroundColor: '#f7f7f7', minHeight: '100vh', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -271,14 +274,36 @@ const BarberPage: React.FC = () => {
       </Card>
 
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
-        <Card sx={{ p: 3, m: 'auto', maxWidth: '400px' }}>
-          <CardContent>
-            <Typography variant="h6">Motivo de Cancelación</Typography>
-            <TextField fullWidth value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="Escribe tu observación..." sx={{ mb: 2 }} />
-            <Button variant="contained" color="error" onClick={handleCancelTurn}>Cancelar Turno</Button>
-          </CardContent>
-        </Card>
-      </Modal>
+  <Card sx={{ p: 3, m: 'auto', maxWidth: '400px' }}>
+    <CardContent>
+      <Typography variant="h6" gutterBottom>
+        ¿Qué quieres hacer con el turno?
+      </Typography>
+
+      {/* 🆕 Opciones de radio para cancelar o habilitar */}
+      <RadioGroup
+        value={restoreTurn ? 'habilitar' : 'cancelar'}
+        onChange={(e) => setRestoreTurn(e.target.value === 'habilitar')}
+      >
+        <FormControlLabel value="cancelar" control={<Radio />} label="Cancelar definitivamente" />
+        <FormControlLabel value="habilitar" control={<Radio />} label="Cancelar y habilitar para otro cliente" />
+      </RadioGroup>
+
+      {/* Campo para escribir el motivo */}
+      <TextField
+        fullWidth
+        value={cancelReason}
+        onChange={(e) => setCancelReason(e.target.value)}
+        placeholder="Motivo de cancelación"
+        sx={{ mt: 2 }}
+      />
+
+      <Button variant="contained" color="error" onClick={handleCancelTurn} sx={{ mt: 2 }}>
+        Confirmar
+      </Button>
+    </CardContent>
+  </Card>
+</Modal>
     </Box>
   );
 };
