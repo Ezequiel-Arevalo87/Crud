@@ -24,11 +24,18 @@ const Home = () => {
     }
 
   }, [token]);
+
+
   useEffect(() => {
     if (mensaje == 'OK') {
       setToken(null)
     }
   }, [mensaje == 'OK']);
+  // useEffect(() => {
+  //   if (mensaje == 'OK') {
+  //     setToken(null)
+  //   }
+  // }, [mensaje == 'OK']);
 
 
 
